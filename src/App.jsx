@@ -82,27 +82,21 @@ export default function App() {
 
       <main className="court">
         <div className="team left">
-          {['LEFT', 'RIGHT'].map((side) => {
-            const player = game.players.left.find(p => p.court === side)
-            if (!player) return null
-
-            //const isServing = servingPlayer?.name === player.name
-
-            return (
-              <div
-                key={player.name}
-                className={`player-badge ${
-                  isServingPlayer('left', player)
-                    ? 'serving-player'
-                    : 'partner-player'
-                }`}
-              >
-                {player.name}
-              </div>
-            )
-          })}
-          <div className="score">{game.score.left}</div>
-          <button className="score-btn" onClick={() => score('left')}>+1</button>
+          {game.players.left.map(player => (
+            <div
+              key={player.name}
+              className={`player-badge
+                court-${player.court.toLowerCase()}
+                ${isServingPlayer('left', player) ? 'serving-player' : 'partner-player'}
+              `}
+            >
+              {player.name}
+            </div>
+          ))}
+          <div className="team-footer">
+            <div className="team-score">{game.score.left}</div>
+            <button className="score-btn" onClick={() => score('left')}>+1</button>
+          </div>
         </div>
 
         <div className="center-panel">
@@ -113,28 +107,22 @@ export default function App() {
         </div>
 		
         <div className="team right">
-          {['RIGHT', 'LEFT'].map((side) => {
-            const player = game.players.right.find(p => p.court === side)
-            if (!player) return null
+          {game.players.right.map(player => (
+            <div
+              key={player.name}
+              className={`player-badge
+                court-${player.court.toLowerCase()}
+                ${isServingPlayer('right', player) ? 'serving-player' : 'partner-player'}
+              `}
+            >
+              {player.name}
+            </div>
+          ))}
 
-            //const isServing = servingPlayer?.name === player.name
-
-            return (
-              <div
-                key={player.name}
-                className={`player-badge ${
-                  isServingPlayer('right', player)
-                    ? 'serving-player'
-                    : 'partner-player'
-                }`}
-              >
-                {player.name}
-              </div>
-            )
-          })}
-
-          <div className="score">{game.score.right}</div>
-          <button className="score-btn" onClick={() => score('right')}>+1</button>
+          <div className="team-footer">
+            <div className="team-score">{game.score.right}</div>
+            <button className="score-btn" onClick={() => score('right')}>+1</button>
+          </div>
         </div>
       </main>
     </div>
