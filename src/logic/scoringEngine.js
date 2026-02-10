@@ -1,4 +1,5 @@
 export function createScoringEngine() {
+    console.log('🔥 scoringEngine loaded')
     const RULES = {
         TARGET: 21,
         WIN_BY: 2,
@@ -31,17 +32,32 @@ export function createScoringEngine() {
     }
 
 
-    function rotateServingTeam(team, score) {
+    function updateServicePosition(state, team) {
+        const players = state.players[team]
+        const score = state.score[team]
+
+        const isLeftTeam = team === 'left'
         const isEven = score % 2 === 0
 
-        if (isEven) {
-            team.players[0].court = 'RIGHT'
-            team.players[1].court = 'LEFT'
-        } else {
-            team.players[0].court = 'LEFT'
-            team.players[1].court = 'RIGHT'
+        // FACE-TO-FACE BWF RULE
+        const shouldServeFrom =
+            isLeftTeam
+                ? (isEven ? 'RIGHT' : 'LEFT')
+                : (isEven ? 'LEFT' : 'RIGHT')
+
+        let serverIndex = players.findIndex(p => p.court === shouldServeFrom)
+
+        // defensive alignment
+        if (serverIndex === -1) {
+            players[0].court = shouldServeFrom
+            players[1].court = shouldServeFrom === 'RIGHT' ? 'LEFT' : 'RIGHT'
+            serverIndex = 0
         }
+
+        state.server.team = team
+        state.server.playerIndex = serverIndex
     }
+
 
     let state = initialState()
 
@@ -72,48 +88,11 @@ export function createScoringEngine() {
         snapshot()
         state.started = true
 
-        // increment score
         state.score[team]++
 
-        const sameServer = state.server.team === team
-        const players = state.players[team]
-        const score = state.score[team]
+        updateServicePosition(state, team)
 
-        // -------- SAME SERVER (rotation within team) --------
-        if (sameServer) {
-            const isLeftTeam = team === 'left'
-
-            const shouldServeFrom =
-                score % 2 === 0
-                    ? (isLeftTeam ? 'RIGHT' : 'LEFT')
-                    : (isLeftTeam ? 'LEFT' : 'RIGHT')
-
-            // find current server + partner
-            const serverPlayer = players[state.server.playerIndex]
-            const partnerPlayer = players.find(p => p !== serverPlayer)
-
-            // enforce correct court positions
-            serverPlayer.court = shouldServeFrom
-            partnerPlayer.court = shouldServeFrom === 'RIGHT' ? 'LEFT' : 'RIGHT'
-
-            // defensive: realign server index based on court
-            state.server.playerIndex = players.findIndex(
-                p => p.court === shouldServeFrom
-            )
-        }
-
-        // -------- SERVICE CHANGE --------
-        else {
-            state.server.team = team
-
-            // service always starts from RIGHT court
-            const serverIndex = players.findIndex(p => p.court === 'RIGHT')
-
-            // defensive fallback
-            state.server.playerIndex = serverIndex !== -1 ? serverIndex : 0
-        }
-
-        // -------- THIRD GAME MID-COURT SWAP --------
+        // third game mid swap
         if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
             if (state.score.left === 11 || state.score.right === 11) {
                 swapSidesInternal()
@@ -121,7 +100,7 @@ export function createScoringEngine() {
             }
         }
 
-        // -------- GAME OVER --------
+        // game over
         if (isGameOver(state.score.left, state.score.right)) {
             const winner = state.score.left > state.score.right ? 'left' : 'right'
             state.gamesWon[winner]++
@@ -134,12 +113,14 @@ export function createScoringEngine() {
         }
     }
 
-
     function swapSidesInternal() {
+        // swap scores
         const s = state.score.left
         state.score.left = state.score.right
         state.score.right = s
-        state.server = state.server === 'left' ? 'right' : 'left'
+
+        // swap server team ONLY
+        state.server.team = state.server.team === 'left' ? 'right' : 'left'
     }
 
     function undo() {
