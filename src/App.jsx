@@ -13,13 +13,11 @@ export default function App() {
   const prevServerRef = useRef(game.server)
   const leftPlayers = game.players?.left || []
 
-  const servingPlayer = (() => {
-    const team = game.server.team
-    const score = game.score[team]
-    const shouldServeFrom = score % 2 === 0 ? 'RIGHT' : 'LEFT'
-
-    return game.players[team].find(p => p.court === shouldServeFrom)
-  })()
+  function isServingPlayer(team, player) {
+    if (game.server.team !== team) return false
+    const server = game.players[team][game.server.playerIndex]
+    return server?.name === player.name
+  }
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
@@ -88,12 +86,16 @@ export default function App() {
             const player = game.players.left.find(p => p.court === side)
             if (!player) return null
 
-            const isServing = servingPlayer?.name === player.name
+            //const isServing = servingPlayer?.name === player.name
 
             return (
               <div
                 key={player.name}
-                className={`player-badge ${isServing ? 'serving-player' : 'partner-player'}`}
+                className={`player-badge ${
+                  isServingPlayer('left', player)
+                    ? 'serving-player'
+                    : 'partner-player'
+                }`}
               >
                 {player.name}
               </div>
@@ -115,12 +117,16 @@ export default function App() {
             const player = game.players.right.find(p => p.court === side)
             if (!player) return null
 
-            const isServing = servingPlayer?.name === player.name
+            //const isServing = servingPlayer?.name === player.name
 
             return (
               <div
                 key={player.name}
-                className={`player-badge ${isServing ? 'serving-player' : 'partner-player'}`}
+                className={`player-badge ${
+                  isServingPlayer('right', player)
+                    ? 'serving-player'
+                    : 'partner-player'
+                }`}
               >
                 {player.name}
               </div>

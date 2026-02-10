@@ -31,32 +31,41 @@ export function createScoringEngine() {
     }
 
 
-    function updateServicePosition(state, team) {
+    function updateServicePosition(state, team, sameServer) {
         const players = state.players[team]
         const score = state.score[team]
 
         const isLeftTeam = team === 'left'
         const isEven = score % 2 === 0
 
-        // FACE-TO-FACE BWF RULE
+        // Face-to-face BWF rule
         const shouldServeFrom =
             isLeftTeam
                 ? (isEven ? 'RIGHT' : 'LEFT')
                 : (isEven ? 'LEFT' : 'RIGHT')
 
-        let serverIndex = players.findIndex(p => p.court === shouldServeFrom)
+        if (sameServer) {
+            // 🔁 SAME SERVER → SWAP COURTS
+            const server = players[state.server.playerIndex]
+            const partner = players.find(p => p !== server)
 
-        // defensive alignment
-        if (serverIndex === -1) {
-            players[0].court = shouldServeFrom
-            players[1].court = shouldServeFrom === 'RIGHT' ? 'LEFT' : 'RIGHT'
-            serverIndex = 0
+            server.court = shouldServeFrom
+            partner.court = shouldServeFrom === 'RIGHT' ? 'LEFT' : 'RIGHT'
+        } else {
+            // 🔄 SERVICE CHANGE → PICK PLAYER ALREADY ON CORRECT COURT
+            let serverIndex = players.findIndex(p => p.court === shouldServeFrom)
+
+            // defensive fallback
+            if (serverIndex === -1) {
+                players[0].court = shouldServeFrom
+                players[1].court = shouldServeFrom === 'RIGHT' ? 'LEFT' : 'RIGHT'
+                serverIndex = 0
+            }
+
+            state.server.team = team
+            state.server.playerIndex = serverIndex
         }
-
-        state.server.team = team
-        state.server.playerIndex = serverIndex
     }
-
 
     let state = initialState()
 
@@ -89,7 +98,8 @@ export function createScoringEngine() {
 
         state.score[team]++
 
-        updateServicePosition(state, team)
+        const sameServer = state.server.team === team
+        updateServicePosition(state, team, sameServer)
 
         // third game mid swap
         if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
