@@ -1,3 +1,5 @@
+Readme
+
 # 🏸 Badminton Scoreboard Web App
 
 A professional **Badminton Doubles Scoreboard** built with **React + Redux (Vite)**, designed for **outdoor night tournaments**, projector displays, and referee-controlled scoring.
