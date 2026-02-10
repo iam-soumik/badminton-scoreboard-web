@@ -1,5 +1,4 @@
 export function createScoringEngine() {
-    console.log('🔥 scoringEngine loaded')
     const RULES = {
         TARGET: 21,
         WIN_BY: 2,
