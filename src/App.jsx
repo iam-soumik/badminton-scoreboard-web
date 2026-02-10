@@ -13,6 +13,14 @@ export default function App() {
   const prevServerRef = useRef(game.server)
   const leftPlayers = game.players?.left || []
 
+  const servingPlayer = (() => {
+    const team = game.server.team
+    const score = game.score[team]
+    const shouldServeFrom = score % 2 === 0 ? 'RIGHT' : 'LEFT'
+
+    return game.players[team].find(p => p.court === shouldServeFrom)
+  })()
+
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(t)
@@ -80,9 +88,7 @@ export default function App() {
             const player = game.players.left.find(p => p.court === side)
             if (!player) return null
 
-            const isServing =
-              game.server.team === 'left' &&
-              game.players.left[game.server.playerIndex]?.name === player.name
+            const isServing = servingPlayer?.name === player.name
 
             return (
               <div
@@ -105,13 +111,11 @@ export default function App() {
         </div>
 		
         <div className="team right">
-          {['LEFT', 'RIGHT'].map((side) => {
+          {['RIGHT', 'LEFT'].map((side) => {
             const player = game.players.right.find(p => p.court === side)
             if (!player) return null
 
-            const isServing =
-              game.server.team === 'right' &&
-              game.players.right[game.server.playerIndex]?.name === player.name
+            const isServing = servingPlayer?.name === player.name
 
             return (
               <div
