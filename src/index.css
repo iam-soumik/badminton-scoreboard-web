@@ -133,11 +133,11 @@ html, body, #root {
 
 .serving-player {
   opacity: 1;
-  background: #065f46;
-  border-color: #22c55e;
-  box-shadow: 0 0 12px #22c55e;
+  background: #af9e08;
+  border-color: #e5e7eb;
+  box-shadow: 0 0 12px rgba(255,255,255,0.8);
+  color: #ffffff;
 }
-
 .team-score {
   font-size: 100px;
   font-weight: 700;
