@@ -10,8 +10,37 @@ export default function App() {
   
   const game = useSelector(state => state.game)
   const [time, setTime] = useState(new Date())
+  const [setPopup, setSetPopup] = useState(null)
   const prevServerRef = useRef(game.server)
   const leftPlayers = game.players?.left || []
+
+  const MAX_SETS = 3
+  const setGrid = Array.from({ length: MAX_SETS }, (_, i) => {
+    const completedSet = game.setResults[i]
+
+    if (completedSet) {
+      return {
+        left: completedSet.left,
+        right: completedSet.right,
+        status: 'completed',
+      }
+    }
+
+    if (i + 1 === game.gameNumber) {
+      return {
+        left: game.score.left,
+        right: game.score.right,
+        status: 'current',
+      }
+    }
+
+    return {
+      left: '',
+      right: '',
+      status: 'future',
+    }
+  })
+
 
   function isServingPlayer(team, player) {
     if (game.server.team !== team) return false
@@ -24,20 +53,44 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  function score(team) {
-    if (!confirmAction(`Add point to ${team.toUpperCase()}?`)) return
+  useEffect(() => {
+    if (game.lastSetResult) {
+      setSetPopup(game.lastSetResult)
 
+      speak(
+        `Set won by ${
+          game.lastSetResult.winner === 'left' ? 'Team A' : 'Team B'
+        }. ${game.lastSetResult.left} ${game.lastSetResult.right}`
+      )
+    }
+  }, [game.lastSetResult])
+
+  function score(team) {
     const prevServer = prevServerRef.current
     dispatch(addPoint(team))
 
     setTimeout(() => {
       const updated = store.getState().game
-      const newServer = updated.server
 
+      // 🏆 1️⃣ SET WON ANNOUNCEMENT
+      if (updated.lastSetResult) {
+        const result = updated.lastSetResult
+
+        speak(
+          `Set won by ${result.winner === 'left' ? 'Team A' : 'Team B'}. 
+          ${result.left} ${result.right}`
+        )
+
+        // clear after announcing once
+        prevServerRef.current = updated.server
+        return
+      }
+
+      // 🎯 2️⃣ NORMAL POINT ANNOUNCEMENT
+      const newServer = updated.server
       const leftScore = updated.score.left
       const rightScore = updated.score.right
 
-      // Score announcement: server team first
       const scoreText =
         newServer.team === 'left'
           ? `${leftScore} ${rightScore}`
@@ -48,21 +101,16 @@ export default function App() {
         prevServer.playerIndex !== newServer.playerIndex
 
       if (serviceChanged && prevServer.team !== newServer.team) {
-        // Service changed to other team
         speak(
           `Service over. ${newServer.team === 'left' ? 'Team A' : 'Team B'} to serve. ${scoreText}`
         )
       } else {
-        // Same server (service continues)
         speak(scoreText)
       }
 
-      // update ref AFTER announcement
       prevServerRef.current = newServer
     }, 80)
   }
-
-
 
   function undoLast() {
     if (!confirmAction('Undo last point?')) return
@@ -100,6 +148,36 @@ export default function App() {
         </div>
 
         <div className="center-panel">
+          <div className="set-grid">
+            {/* Header Row */}
+            <div className="cell header"></div>
+            {setGrid.map((_, i) => (
+              <div key={i} className="cell header">Set {i + 1}</div>
+            ))}
+
+            {/* Team A Row */}
+            <div className="cell team-name">{game.teamInfo.left}</div>
+            {setGrid.map((set, i) => (
+              <div
+                key={i}
+                className={`cell score ${set.status}`}
+              >
+                {set.left}
+              </div>
+            ))}
+
+            {/* Team B Row */}
+            <div className="cell team-name">{game.teamInfo.right}</div>
+            {setGrid.map((set, i) => (
+              <div
+                key={i}
+                className={`cell score ${set.status}`}
+              >
+                {set.right}
+              </div>
+            ))}
+          </div>
+
           <button className="undo-btn" onClick={undoLast}>UNDO</button>
           <div className="game-info">
             Game {game.gameNumber} • Server: {game.server.team.toUpperCase()}
@@ -124,6 +202,21 @@ export default function App() {
             <button className="score-btn" onClick={() => score('right')}>+1</button>
           </div>
         </div>
+
+        {setPopup && (
+          <div className="set-popup">
+            <div className="popup-card">
+              <h2>SET RESULT</h2>
+              <p>
+                {setPopup.winner === 'left' ? 'Team A' : 'Team B'} won
+              </p>
+              <p>
+                {setPopup.left} - {setPopup.right}
+              </p>
+              <button onClick={() => setSetPopup(null)}>OK</button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

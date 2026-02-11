@@ -27,9 +27,25 @@ export function createScoringEngine() {
             history: [],
             started: false,
             thirdGameSwapDone: false,
+            setResults: [],          // [{ left: 21, right: 18 }]
+            lastSetResult: null,     // { winner, left, right }
+            teamInfo: {
+                left: "Team A",
+                right: "Team B",
+            },
+            matchConfig: {
+                firstServerTeam: 'left',
+                firstServerPlayerIndex: 0,
+            }
+
         }
     }
 
+    function swapCourtsOnly() {
+        const tempPlayers = state.players.left
+        state.players.left = state.players.right
+        state.players.right = tempPlayers
+    }
 
     function updateServicePosition(state, team, sameServer) {
         const players = state.players[team]
@@ -39,10 +55,7 @@ export function createScoringEngine() {
         const isEven = score % 2 === 0
 
         // Face-to-face BWF rule
-        const shouldServeFrom =
-            isLeftTeam
-                ? (isEven ? 'RIGHT' : 'LEFT')
-                : (isEven ? 'LEFT' : 'RIGHT')
+        const shouldServeFrom = isEven ? 'RIGHT' : 'LEFT'
 
         if (sameServer) {
             // 🔁 SAME SERVER → SWAP COURTS
@@ -83,6 +96,13 @@ export function createScoringEngine() {
         )
     }
 
+    function swapPlayerPositions(team) {
+        const players = state.players[team]
+        const temp = players[0].court
+        players[0].court = players[1].court
+        players[1].court = temp
+    }
+
 
     function isGameOver(l, r) {
         if ((l >= RULES.TARGET || r >= RULES.TARGET) && Math.abs(l - r) >= RULES.WIN_BY) {
@@ -93,42 +113,93 @@ export function createScoringEngine() {
     }
 
     function addPoint(team) {
+        if (state.gamesWon.left === 2 || state.gamesWon.right === 2) {
+            return
+        }
         snapshot()
+        if (!state.started && state.gameNumber === 1) {
+            state.server.team = state.matchConfig.firstServerTeam
+            state.server.playerIndex = state.matchConfig.firstServerPlayerIndex
+        }
+
         state.started = true
 
+        // 🧹 Clear previous set result ONLY on first rally of new set
+        if (
+            state.lastSetResult &&
+            state.score.left === 0 &&
+            state.score.right === 0
+        ) {
+            state.lastSetResult = null
+        }
+
+        // ➕ Add point
         state.score[team]++
 
         const sameServer = state.server.team === team
         updateServicePosition(state, team, sameServer)
 
-        // third game mid swap
+        // 🔁 3rd game mid-court swap at 11
         if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
             if (state.score.left === 11 || state.score.right === 11) {
-                swapSidesInternal()
+                swapSidesFull()
                 state.thirdGameSwapDone = true
             }
         }
 
-        // game over
+        // 🏁 SET OVER
         if (isGameOver(state.score.left, state.score.right)) {
             const winner = state.score.left > state.score.right ? 'left' : 'right'
             state.gamesWon[winner]++
 
-            if (state.gamesWon.left + state.gamesWon.right < 3) {
+            // 📊 Save set history
+            state.setResults.push({
+                left: state.score.left,
+                right: state.score.right,
+            })
+
+            state.lastSetResult = {
+                winner,
+                left: state.score.left,
+                right: state.score.right,
+                setNumber: state.gameNumber,
+            }
+
+            // 🔁 Swap physical court sides only
+            swapCourtsOnly()
+
+            // 🏆 Winner serves next set
+            state.server.team = winner
+            state.server.playerIndex = 0   // you can make configurable later
+
+            if (state.gamesWon.left + state.gamesWon.right < RULES.MAX_GAMES) {
                 state.gameNumber++
                 state.score = { left: 0, right: 0 }
                 state.started = false
+                state.thirdGameSwapDone = false
             }
         }
+
     }
 
-    function swapSidesInternal() {
+
+    function swapSidesFull() {
+        // swap players
+        const tempPlayers = state.players.left
+        state.players.left = state.players.right
+        state.players.right = tempPlayers
+
         // swap scores
         const s = state.score.left
         state.score.left = state.score.right
         state.score.right = s
 
-        // swap server team ONLY
+        // swap games won
+        const g = state.gamesWon.left
+        state.gamesWon.left = state.gamesWon.right
+        state.gamesWon.right = g
+
+        // swap server team
         state.server.team = state.server.team === 'left' ? 'right' : 'left'
     }
 

@@ -135,9 +135,21 @@ html, body, #root {
   opacity: 1;
   background: #af9e08;
   border-color: #e5e7eb;
-  box-shadow: 0 0 12px rgba(255,255,255,0.8);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
   color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
+@keyframes servePulse {
+  0%   { box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+  50%  { box-shadow: 0 0 14px rgba(255,255,255,0.9); }
+  100% { box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+}
+
+.serving-player {
+  animation: servePulse 1.6s ease-in-out infinite;
+}
+
 .team-score {
   font-size: 100px;
   font-weight: 700;
@@ -174,4 +186,91 @@ html, body, #root {
   justify-content: center;
   border-top: 1px solid rgba(255,255,255,0.3);
   z-index: 1;
+}
+
+.set-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 31, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-card {
+  background: #8eb450;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.current-set {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 10px rgba(255,215,0,0.6);
+}
+
+.set-grid {
+  display: grid;
+  grid-template-columns: 120px repeat(3, 70px);
+  gap: 0; /* IMPORTANT: enables real dividers */
+  margin-bottom: 12px;
+  border: 2px solid #374151;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.cell {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 5px;
+  text-align: center;
+  border-radius: 0px;
+  font-weight: 600;
+  /* divider lines */
+  border-right: 1px solid #374151;
+  border-bottom: 1px solid #374151;
+}
+
+.cell.header {
+  background: #1f2937;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cell.team-name {
+  background: #020617;
+  text-align: left;
+  padding-left: 10px;
+  font-size: 16px !important;
+  margin-bottom: 0px !important;
+  font-weight: 700;
+}
+
+.cell.score.completed {
+  background: #030712;
+  font-size: 16px !important;
+}
+
+.cell.score.current {
+  background: #0f172a;
+  border: 2px solid #facc15;
+  box-shadow: 0 0 8px rgba(250,204,21,0.6);
+  font-size: 16px !important;
+  position: relative;
+  z-index: 2;
+}
+
+.cell.score.future {
+  background: #020617;
+  opacity: 0.35;
+  font-size: 16px !important;
+}
+
+/* Remove extra borders on edges */
+.cell:nth-child(4n) {
+  border-right: none;
+}
+.cell:nth-last-child(-n + 4) {
+  border-bottom: none;
 }
