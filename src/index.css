@@ -67,6 +67,7 @@ html, body, #root {
   margin-bottom: 16px;
 }
 
+
 .score {
   font-size: 160px;
   font-weight: 700;
@@ -88,6 +89,14 @@ html, body, #root {
   border-radius: 12px;
 }
 
+.score-btn:disabled {
+  background: #6b7280;      /* gray */
+  color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
 .center-panel {
   display: flex;
   flex-direction: column;
@@ -95,13 +104,19 @@ html, body, #root {
   gap: 16px;
 }
 
-.undo-btn {
-  padding: 10px 24px;
-  font-size: 18px;
+.utility-btn {
+  padding: 8px 10px;
+  font-size: 12px;
   background: #1f2933;
   color: white;
   border: 1px solid #334155;
-  border-radius: 8px;
+  border-radius: 2px;
+  margin: 2px;
+}
+
+.utility-div {
+  background-color: #0c4a6e;
+  opacity: 0.5;
 }
 
 .game-info {
@@ -149,7 +164,12 @@ html, body, #root {
 .serving-player {
   animation: servePulse 1.6s ease-in-out infinite;
 }
-
+.match-finished .serving-player {
+  animation: none;
+  box-shadow: none;
+  border-style: dashed;
+  opacity: 0.85;
+}
 .team-score {
   font-size: 100px;
   font-weight: 700;

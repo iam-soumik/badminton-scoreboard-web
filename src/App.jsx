@@ -7,94 +7,115 @@ import { store } from './redux/store'
 
 export default function App() {
   const dispatch = useDispatch()
-  
   const game = useSelector(state => state.game)
+
   const [time, setTime] = useState(new Date())
   const [setPopup, setSetPopup] = useState(null)
   const prevServerRef = useRef(game.server)
-  const leftPlayers = game.players?.left || []
 
+  /* 🔁 Resolve visual → logical mapping */
+  const leftTeam = game.courtSides.left
+  const rightTeam = game.courtSides.right
+
+  const leftPlayers = game.players[leftTeam]
+  const rightPlayers = game.players[rightTeam]
+
+  /* 🧮 SET GRID (TV STYLE) */
   const MAX_SETS = 3
   const setGrid = Array.from({ length: MAX_SETS }, (_, i) => {
-    const completedSet = game.setResults[i]
+    const completed = game.setResults[i]
 
-    if (completedSet) {
+    if (completed) {
       return {
-        left: completedSet.left,
-        right: completedSet.right,
+        teamA: completed.teamA,
+        teamB: completed.teamB,
         status: 'completed',
       }
     }
 
     if (i + 1 === game.gameNumber) {
       return {
-        left: game.score.left,
-        right: game.score.right,
+        teamA: game.score.teamA,
+        teamB: game.score.teamB,
         status: 'current',
       }
     }
 
-    return {
-      left: '',
-      right: '',
-      status: 'future',
-    }
+    return { teamA: '', teamB: '', status: 'future' }
   })
 
-
+  /* 🎯 SERVING INDICATOR */
   function isServingPlayer(team, player) {
+    if (game.matchFinished) return false
     if (game.server.team !== team) return false
-    const server = game.players[team][game.server.playerIndex]
-    return server?.name === player.name
+    return game.players[team][game.server.playerIndex]?.name === player.name
   }
 
+  /* ⏰ CLOCK */
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
 
+  /* 🏆 SET POPUP + ANNOUNCE */
   useEffect(() => {
-    if (game.lastSetResult) {
-      setSetPopup(game.lastSetResult)
+    if (!game.lastSetResult) return
 
-      speak(
-        `Set won by ${
-          game.lastSetResult.winner === 'left' ? 'Team A' : 'Team B'
-        }. ${game.lastSetResult.left} ${game.lastSetResult.right}`
-      )
-    }
+    setSetPopup(game.lastSetResult)
+
+    const r = game.lastSetResult
+    const winnerScore = r.winner === 'teamA' ? r.teamA : r.teamB
+    const loserScore = r.winner === 'teamA' ? r.teamB : r.teamA
+
+    speak(
+      `Set won by ${game.teamInfo[r.winner]}.  ${winnerScore} ${loserScore}`
+    )
+
   }, [game.lastSetResult])
 
-  function score(team) {
+  function announceMatchResult() {
+    const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
+    const loser  = winner === 'teamA' ? 'teamB' : 'teamA'
+
+    const winnerName = winner === 'teamA' ? 'Team A' : 'Team B'
+    const loserName = loser === 'teamA' ? 'Team A' : 'Team B'
+
+    const winnerScore = game.gamesWon[winner]
+    const loserScore = game.gamesWon[loser]
+
+    speak(
+      `${winnerName} wins the match by ${winnerScore} to ${loserScore}`
+    )
+  }
+
+  function announceCurrentScore() {
+    if (game.matchFinished) return
+
+    const { teamA, teamB } = game.score
+
+    speak(`Current score. Team A ${teamA}. Team B ${teamB}.`)
+  }
+
+
+  /* ➕ SCORE */
+  function score(courtSide) {
     const prevServer = prevServerRef.current
-    dispatch(addPoint(team))
+    dispatch(addPoint(courtSide))
 
     setTimeout(() => {
       const updated = store.getState().game
 
-      // 🏆 1️⃣ SET WON ANNOUNCEMENT
-      if (updated.lastSetResult) {
-        const result = updated.lastSetResult
-
-        speak(
-          `Set won by ${result.winner === 'left' ? 'Team A' : 'Team B'}. 
-          ${result.left} ${result.right}`
-        )
-
-        // clear after announcing once
+      if (updated.lastSetResult && !updated.matchFinished) {
         prevServerRef.current = updated.server
         return
       }
 
-      // 🎯 2️⃣ NORMAL POINT ANNOUNCEMENT
       const newServer = updated.server
-      const leftScore = updated.score.left
-      const rightScore = updated.score.right
+      const sA = updated.score.teamA
+      const sB = updated.score.teamB
 
       const scoreText =
-        newServer.team === 'left'
-          ? `${leftScore} ${rightScore}`
-          : `${rightScore} ${leftScore}`
+        newServer.team === 'teamA' ? `${sA} ${sB}` : `${sB} ${sA}`
 
       const serviceChanged =
         prevServer.team !== newServer.team ||
@@ -102,7 +123,7 @@ export default function App() {
 
       if (serviceChanged && prevServer.team !== newServer.team) {
         speak(
-          `Service over. ${newServer.team === 'left' ? 'Team A' : 'Team B'} to serve. ${scoreText}`
+          `Service over. ${updated.teamInfo[newServer.team]} to serve. ${scoreText}`
         )
       } else {
         speak(scoreText)
@@ -117,6 +138,14 @@ export default function App() {
     dispatch(undo())
   }
 
+  function undoFromPopup() {
+    if (!confirmAction('Undo last point?')) return
+    dispatch(undo())
+    setSetPopup(null)   // 👈 CLOSE POPUP
+ }
+
+  /* ================= UI ================= */
+
   return (
     <div className="app-root">
       <header className="top-bar">
@@ -128,95 +157,107 @@ export default function App() {
         </div>
       </header>
 
-      <main className="court">
+      <main className={`court ${game.matchFinished ? 'match-finished' : ''}`}>
+
+        {/* LEFT COURT */}
         <div className="team left">
-          {game.players.left.map(player => (
+          {leftPlayers.map(player => (
             <div
               key={player.name}
-              className={`player-badge
-                court-${player.court.toLowerCase()}
-                ${isServingPlayer('left', player) ? 'serving-player' : 'partner-player'}
+              className={`player-badge court-${player.court.toLowerCase()}
+                ${isServingPlayer(leftTeam, player) ? 'serving-player' : 'partner-player'}
               `}
             >
               {player.name}
             </div>
           ))}
           <div className="team-footer">
-            <div className="team-score">{game.score.left}</div>
-            <button className="score-btn" onClick={() => score('left')}>+1</button>
+            <div className="team-score">{game.score[leftTeam]}</div>
+            <button
+              className="score-btn"
+              onClick={() => score('left')}
+              disabled={game.matchFinished}
+            >
+              +1
+            </button>
           </div>
         </div>
 
+        {/* CENTER PANEL */}
         <div className="center-panel">
+
           <div className="set-grid">
-            {/* Header Row */}
             <div className="cell header"></div>
             {setGrid.map((_, i) => (
               <div key={i} className="cell header">Set {i + 1}</div>
             ))}
 
-            {/* Team A Row */}
-            <div className="cell team-name">{game.teamInfo.left}</div>
-            {setGrid.map((set, i) => (
-              <div
-                key={i}
-                className={`cell score ${set.status}`}
-              >
-                {set.left}
-              </div>
+            <div className="cell team-name">{game.teamInfo.teamA}</div>
+            {setGrid.map((s, i) => (
+              <div key={i} className={`cell score ${s.status}`}>{s.teamA}</div>
             ))}
 
-            {/* Team B Row */}
-            <div className="cell team-name">{game.teamInfo.right}</div>
-            {setGrid.map((set, i) => (
-              <div
-                key={i}
-                className={`cell score ${set.status}`}
-              >
-                {set.right}
-              </div>
+            <div className="cell team-name">{game.teamInfo.teamB}</div>
+            {setGrid.map((s, i) => (
+              <div key={i} className={`cell score ${s.status}`}>{s.teamB}</div>
             ))}
           </div>
+          <div className="utility-div">
+            <button className="utility-btn" onClick={undoLast}>Undo</button>
+            <button className="utility-btn" onClick={announceCurrentScore}> Score </button>
+          </div>
+          
 
-          <button className="undo-btn" onClick={undoLast}>UNDO</button>
           <div className="game-info">
-            Game {game.gameNumber} • Server: {game.server.team.toUpperCase()}
+            Game {game.gameNumber} • Server: {game.teamInfo[game.server.team]}
           </div>
         </div>
-		
+
+        {/* RIGHT COURT */}
         <div className="team right">
-          {game.players.right.map(player => (
+          {rightPlayers.map(player => (
             <div
               key={player.name}
-              className={`player-badge
-                court-${player.court.toLowerCase()}
-                ${isServingPlayer('right', player) ? 'serving-player' : 'partner-player'}
+              className={`player-badge court-${player.court.toLowerCase()}
+                ${isServingPlayer(rightTeam, player) ? 'serving-player' : 'partner-player'}
               `}
             >
               {player.name}
             </div>
           ))}
-
           <div className="team-footer">
-            <div className="team-score">{game.score.right}</div>
-            <button className="score-btn" onClick={() => score('right')}>+1</button>
+            <div className="team-score">{game.score[rightTeam]}</div>
+            <button
+              className="score-btn"
+              onClick={() => score('right')}
+              disabled={game.matchFinished}
+            >
+              +1
+            </button>
           </div>
         </div>
 
+        {/* SET POPUP */}
         {setPopup && (
           <div className="set-popup">
             <div className="popup-card">
               <h2>SET RESULT</h2>
+              <p>{game.teamInfo[setPopup.winner]} won</p>
               <p>
-                {setPopup.winner === 'left' ? 'Team A' : 'Team B'} won
+                {setPopup.winner === 'teamA'
+                  ? `${setPopup.teamA} - ${setPopup.teamB}`
+                  : `${setPopup.teamB} - ${setPopup.teamA}`}
               </p>
-              <p>
-                {setPopup.left} - {setPopup.right}
-              </p>
-              <button onClick={() => setSetPopup(null)}>OK</button>
+              <div className="popup-actions">
+                <button onClick={undoFromPopup}>Undo</button>
+                {game.matchFinished  && <button onClick={announceMatchResult}>Announce</button> }
+                <button onClick={() => setSetPopup(null)}>OK</button>
+              </div>
+
             </div>
           </div>
         )}
+
       </main>
     </div>
   )
