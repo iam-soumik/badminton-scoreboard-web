@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from 'react'
 import { speak } from './utils/speak'
 import { store } from './redux/store'
 import { db } from "./firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getDeviceId } from "./utils/device";
 
 export default function App() {
@@ -77,13 +77,14 @@ export default function App() {
   }, [game.lastSetResult])
 
   useEffect(() => {
-    const registerDevice = async () => {
-      const deviceId = getDeviceId();
+    const deviceId = getDeviceId();
+    const deviceRef = doc(db, "devices", deviceId);
 
-      await setDoc(doc(db, "devices", deviceId), {
+    const registerDevice = async () => {
+      await setDoc(deviceRef, {
         deviceId,
-        role: "referee",          // temporary default
-        mode: "standby",          // default mode
+        role: "referee",   // temporary
+        mode: "standby",   // default
         isOnline: true,
         lastHeartbeat: serverTimestamp(),
         createdAt: serverTimestamp()
@@ -92,9 +93,19 @@ export default function App() {
       console.log("Device registered:", deviceId);
     };
 
-    registerDevice();
-  }, []);
+    const startHeartbeat = () => {
+      setInterval(async () => {
+        await updateDoc(deviceRef, {
+          lastHeartbeat: serverTimestamp(),
+          isOnline: true
+        });
+      }, 5000); // every 5 seconds
+    };
 
+    registerDevice();
+    startHeartbeat();
+
+  }, []);
 
   function announceMatchResult() {
     const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
