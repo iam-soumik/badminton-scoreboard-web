@@ -4,6 +4,9 @@ import { confirmAction } from './utils/confirm'
 import { useEffect, useState, useRef } from 'react'
 import { speak } from './utils/speak'
 import { store } from './redux/store'
+import { db } from "./firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { getDeviceId } from "./utils/device";
 
 export default function App() {
   const dispatch = useDispatch()
@@ -72,6 +75,26 @@ export default function App() {
     )
 
   }, [game.lastSetResult])
+
+  useEffect(() => {
+    const registerDevice = async () => {
+      const deviceId = getDeviceId();
+
+      await setDoc(doc(db, "devices", deviceId), {
+        deviceId,
+        role: "referee",          // temporary default
+        mode: "standby",          // default mode
+        isOnline: true,
+        lastHeartbeat: serverTimestamp(),
+        createdAt: serverTimestamp()
+      }, { merge: true });
+
+      console.log("Device registered:", deviceId);
+    };
+
+    registerDevice();
+  }, []);
+
 
   function announceMatchResult() {
     const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
