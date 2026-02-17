@@ -7,6 +7,7 @@ import { store } from './redux/store'
 import { db } from "./firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getDeviceId } from "./utils/device";
+import AdminPanel from './pages/AdminPanel'
 
 export default function App() {
   const dispatch = useDispatch()
@@ -83,8 +84,8 @@ export default function App() {
     const registerDevice = async () => {
       await setDoc(deviceRef, {
         deviceId,
-        role: "referee",   // temporary
-        mode: "standby",   // default
+        role: "admin",       // choose actual value
+        mode: "standby",     // default start mode
         isOnline: true,
         lastHeartbeat: serverTimestamp(),
         createdAt: serverTimestamp()
@@ -182,6 +183,7 @@ export default function App() {
 
   return (
     <div className="app-root">
+      <AdminPanel />
       <header className="top-bar">
         <div className="tournament-title">
           NASIBPUR BRAHMINPARA BADMINTON TOURNAMENT
