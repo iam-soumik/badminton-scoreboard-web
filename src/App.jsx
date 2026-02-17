@@ -8,6 +8,9 @@ import { db } from "./firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getDeviceId } from "./utils/device";
 import AdminPanel from './pages/AdminPanel'
+import { useDeviceStatus } from './redux/hooks/useDeviceStatus'
+
+
 
 export default function App() {
   const dispatch = useDispatch()
@@ -16,6 +19,9 @@ export default function App() {
   const [time, setTime] = useState(new Date())
   const [setPopup, setSetPopup] = useState(null)
   const prevServerRef = useRef(game.server)
+
+  const device = useDeviceStatus();
+  const canScore = device?.mode === "primary" || device?.mode === "active";
 
   /* 🔁 Resolve visual → logical mapping */
   const leftTeam = game.courtSides.left
@@ -71,7 +77,7 @@ export default function App() {
     const winnerScore = r.winner === 'teamA' ? r.teamA : r.teamB
     const loserScore = r.winner === 'teamA' ? r.teamB : r.teamA
 
-    speak(
+    speakIfPrimary(
       `Set won by ${game.teamInfo[r.winner]}.  ${winnerScore} ${loserScore}`
     )
 
@@ -108,7 +114,15 @@ export default function App() {
 
   }, []);
 
+  function speakIfPrimary(text) {
+    if (device?.mode === "primary") {
+      speak(text)
+    }
+  }
+
   function announceMatchResult() {
+    if (device?.mode !== "primary") return;   // 🔒 ONLY PRIMARY
+
     const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
     const loser  = winner === 'teamA' ? 'teamB' : 'teamA'
 
@@ -118,22 +132,25 @@ export default function App() {
     const winnerScore = game.gamesWon[winner]
     const loserScore = game.gamesWon[loser]
 
-    speak(
+    speakIfPrimary(
       `${winnerName} wins the match by ${winnerScore} to ${loserScore}`
     )
   }
 
   function announceCurrentScore() {
+    if (!canScore) return;          // 🔒
     if (game.matchFinished) return
 
     const { teamA, teamB } = game.score
 
-    speak(`Current score. Team A ${teamA}. Team B ${teamB}.`)
+    speakIfPrimary(`Current score. Team A ${teamA}. Team B ${teamB}.`)
   }
 
 
   /* ➕ SCORE */
   function score(courtSide) {
+    if (!canScore) return;          // 🔒 HARD BLOCK
+    if (game.matchFinished) return;
     const prevServer = prevServerRef.current
     dispatch(addPoint(courtSide))
 
@@ -157,11 +174,11 @@ export default function App() {
         prevServer.playerIndex !== newServer.playerIndex
 
       if (serviceChanged && prevServer.team !== newServer.team) {
-        speak(
+        speakIfPrimary(
           `Service over. ${updated.teamInfo[newServer.team]} to serve. ${scoreText}`
         )
       } else {
-        speak(scoreText)
+        speakIfPrimary(scoreText)
       }
 
       prevServerRef.current = newServer
@@ -169,11 +186,13 @@ export default function App() {
   }
 
   function undoLast() {
+    if (!canScore) return;          // 🔒
     if (!confirmAction('Undo last point?')) return
     dispatch(undo())
   }
 
   function undoFromPopup() {
+    if (!canScore) return;          // 🔒
     if (!confirmAction('Undo last point?')) return
     dispatch(undo())
     setSetPopup(null)   // 👈 CLOSE POPUP
@@ -212,7 +231,7 @@ export default function App() {
             <button
               className="score-btn"
               onClick={() => score('left')}
-              disabled={game.matchFinished}
+              disabled={game.matchFinished || !canScore}
             >
               +1
             </button>
@@ -239,8 +258,8 @@ export default function App() {
             ))}
           </div>
           <div className="utility-div">
-            <button className="utility-btn" onClick={undoLast}>Undo</button>
-            <button className="utility-btn" onClick={announceCurrentScore}> Score </button>
+            <button className="utility-btn" disabled={!canScore} onClick={undoLast}>Undo</button>
+            <button className="utility-btn" disabled={!canScore} onClick={announceCurrentScore}> Score </button>
           </div>
           
 
@@ -266,7 +285,7 @@ export default function App() {
             <button
               className="score-btn"
               onClick={() => score('right')}
-              disabled={game.matchFinished}
+              disabled={game.matchFinished || !canScore}
             >
               +1
             </button>
@@ -285,8 +304,10 @@ export default function App() {
                   : `${setPopup.teamB} - ${setPopup.teamA}`}
               </p>
               <div className="popup-actions">
-                <button onClick={undoFromPopup}>Undo</button>
-                {game.matchFinished  && <button onClick={announceMatchResult}>Announce</button> }
+                <button disabled={!canScore} onClick={undoFromPopup}>Undo</button>
+                {game.matchFinished  && device?.mode === "primary" && (
+                  <button onClick={announceMatchResult}>Announce</button> 
+                )}
                 <button onClick={() => setSetPopup(null)}>OK</button>
               </div>
 

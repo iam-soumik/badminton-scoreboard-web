@@ -137,77 +137,77 @@ export function createScoringEngine() {
   /* ---------------- CORE LOGIC ---------------- */
 
   function addPoint(courtSide) {
-  if (state.matchFinished) return
+    if (state.matchFinished) return
 
-  snapshot()
+    snapshot()
 
-  const team = state.courtSides[courtSide]
+    const team = state.courtSides[courtSide]
 
-  if (!state.started) {
-    state.server.team = state.matchConfig.firstServerTeam
-    state.server.playerIndex = state.matchConfig.firstServerPlayerIndex
-    state.started = true
-  }
+    if (!state.started) {
+      state.server.team = state.matchConfig.firstServerTeam
+      state.server.playerIndex = state.matchConfig.firstServerPlayerIndex
+      state.started = true
+    }
 
-  // clear popup on new rally
-  if (state.lastSetResult && state.score.teamA === 0 && state.score.teamB === 0) {
-    state.lastSetResult = null
-  }
+    // clear popup on new rally
+    if (state.lastSetResult && state.score.teamA === 0 && state.score.teamB === 0) {
+      state.lastSetResult = null
+    }
 
-  state.score[team]++
+    state.score[team]++
 
-  const sameServer = state.server.team === team
-  updateServicePosition(team, sameServer)
+    const sameServer = state.server.team === team
+    updateServicePosition(team, sameServer)
 
-  // 🔁 3rd set mid swap at 11
-  if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
-    if (state.score.teamA === 11 || state.score.teamB === 11) {
+    // 🔁 3rd set mid swap at 11
+    if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
+      if (state.score.teamA === 11 || state.score.teamB === 11) {
+        swapCourtsOnly()
+        state.thirdGameSwapDone = true
+      }
+    }
+
+    // 🏁 SET OVER
+    if (isGameOver(state.score.teamA, state.score.teamB)) {
+      const winner =
+        state.score.teamA > state.score.teamB ? 'teamA' : 'teamB'
+
+      state.gamesWon[winner]++
+
+      state.setResults.push({
+        teamA: state.score.teamA,
+        teamB: state.score.teamB,
+      })
+
+      state.lastSetResult = {
+        winner,
+        teamA: state.score.teamA,
+        teamB: state.score.teamB,
+        setNumber: state.gameNumber,
+      }
+
+      // 🛑 CHECK IF MATCH OVER FIRST
+      const isMatchOver = state.gamesWon[winner] === 2
+
+      if (isMatchOver) {
+        state.matchFinished = true
+        return   // 🔒 DO NOT swap courts, DO NOT reset scores
+      }
+
+      // 🔁 Normal between-set behavior
       swapCourtsOnly()
-      state.thirdGameSwapDone = true
+
+      // winner serves next set
+      state.server.team = winner
+      state.server.playerIndex = 0
+
+      state.gameNumber++
+      state.score.teamA = 0
+      state.score.teamB = 0
+      state.started = false
+      state.thirdGameSwapDone = false
     }
   }
-
-  // 🏁 SET OVER
-  if (isGameOver(state.score.teamA, state.score.teamB)) {
-    const winner =
-      state.score.teamA > state.score.teamB ? 'teamA' : 'teamB'
-
-    state.gamesWon[winner]++
-
-    state.setResults.push({
-      teamA: state.score.teamA,
-      teamB: state.score.teamB,
-    })
-
-    state.lastSetResult = {
-      winner,
-      teamA: state.score.teamA,
-      teamB: state.score.teamB,
-      setNumber: state.gameNumber,
-    }
-
-    // 🛑 CHECK IF MATCH OVER FIRST
-    const isMatchOver = state.gamesWon[winner] === 2
-
-    if (isMatchOver) {
-      state.matchFinished = true
-      return   // 🔒 DO NOT swap courts, DO NOT reset scores
-    }
-
-    // 🔁 Normal between-set behavior
-    swapCourtsOnly()
-
-    // winner serves next set
-    state.server.team = winner
-    state.server.playerIndex = 0
-
-    state.gameNumber++
-    state.score.teamA = 0
-    state.score.teamB = 0
-    state.started = false
-    state.thirdGameSwapDone = false
-  }
-}
 
 
   function undo() {
