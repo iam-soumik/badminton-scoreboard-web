@@ -6,7 +6,7 @@ import { speak } from './utils/speak'
 import { store } from './redux/store'
 import { db } from "./firebase";
 import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { getDeviceId } from "./utils/device";
+import { buildSystemName, getDeviceId, getDeviceInfo } from "./utils/device";
 import AdminPanel from './pages/AdminPanel'
 import { useDeviceStatus } from './redux/hooks/useDeviceStatus'
 
@@ -86,15 +86,20 @@ export default function App() {
   useEffect(() => {
     const deviceId = getDeviceId();
     const deviceRef = doc(db, "devices", deviceId);
-
+    
     const registerDevice = async () => {
+      const info = await getDeviceInfo();
+      const systemName = buildSystemName(info);
+
       await setDoc(deviceRef, {
         deviceId,
         role: "admin",       // choose actual value
         mode: "standby",     // default start mode
         isOnline: true,
         lastHeartbeat: serverTimestamp(),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        systemName,        // immutable display name
+        nickName: ""       // editable by admin
       }, { merge: true });
 
       console.log("Device registered:", deviceId);
@@ -145,7 +150,6 @@ export default function App() {
 
     speakIfPrimary(`Current score. Team A ${teamA}. Team B ${teamB}.`)
   }
-
 
   /* ➕ SCORE */
   function score(courtSide) {

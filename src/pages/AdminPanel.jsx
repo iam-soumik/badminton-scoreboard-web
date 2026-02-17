@@ -29,7 +29,6 @@ function AdminPanel() {
     return () => clearInterval(interval);
   }, []);
 
-
   const isOnline = (lastHeartbeat) => {
     if (!lastHeartbeat) return true; // treat pending write as online
 
@@ -92,6 +91,31 @@ function AdminPanel() {
     }
   };
 
+  const getDisplayName = (device) => {
+    if (device.nickName && device.nickName.trim() !== "") {
+      return (
+        <>
+          <strong>{device.nickName}</strong>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>
+            {device.systemName}
+          </div>
+        </>
+      );
+    }
+
+    return <strong>{device.systemName}</strong>;
+  };
+
+  const updateNickName = async (deviceId, nickName) => {
+    try {
+      await updateDoc(doc(db, "devices", deviceId), {
+        nickName
+      });
+    } catch (err) {
+      console.error("Nick name update failed", err);
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <h2>Admin Device Monitor</h2>
@@ -99,7 +123,7 @@ function AdminPanel() {
       <table border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>Device ID</th>
+            <th>Device Info</th>
             <th>Role</th>
             <th>Mode</th>
             <th>Status</th>
@@ -109,7 +133,19 @@ function AdminPanel() {
         <tbody>
           {devices.map(device => (
             <tr key={device.id}>
-              <td>{device.id}</td>
+              <td>
+                {getDisplayName(device)}
+                <div style={{ marginTop: 6 }}>
+                  <input
+                    type="text"
+                    placeholder="Set nick name"
+                    value={device.nickName || ""}
+                    onChange={(e) =>
+                      updateNickName(device.id, e.target.value)
+                    }
+                  />
+                </div>
+              </td>
               <td>
                 <strong>{device.role}</strong>
                 <div style={{ marginTop: 6 }}>
