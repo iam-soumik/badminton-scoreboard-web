@@ -86,38 +86,47 @@ export default function App() {
   useEffect(() => {
     const deviceId = getDeviceId();
     const deviceRef = doc(db, "devices", deviceId);
-    
+
+    let intervalId;
+
     const registerDevice = async () => {
       const info = await getDeviceInfo();
       const systemName = buildSystemName(info);
 
       await setDoc(deviceRef, {
         deviceId,
-        role: "admin",       // choose actual value
-        mode: "standby",     // default start mode
-        isOnline: true,
+        role: "admin",
+        mode: "standby",
         lastHeartbeat: serverTimestamp(),
         createdAt: serverTimestamp(),
-        systemName,        // immutable display name
-        nickName: ""       // editable by admin
+        systemName,
+        nickName: ""
       }, { merge: true });
-
-      console.log("Device registered:", deviceId);
     };
 
     const startHeartbeat = () => {
-      setInterval(async () => {
+      intervalId = setInterval(async () => {
+
+        // ✅ Only active devices write
+        if (device?.mode !== "primary" && device?.mode !== "active") return;
+
         await updateDoc(deviceRef, {
           lastHeartbeat: serverTimestamp(),
           isOnline: true
         });
-      }, 90000); // every 90 seconds
+
+      }, 90000);
     };
 
     registerDevice();
     startHeartbeat();
 
-  }, []);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+
+  }, [device?.mode]);
+
 
   function speakIfPrimary(text) {
     if (device?.mode === "primary") {

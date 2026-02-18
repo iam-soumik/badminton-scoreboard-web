@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
+import { collection, doc, updateDoc, getDocs } from "firebase/firestore";
 
 function AdminPanel() {
   const [devices, setDevices] = useState([]);
@@ -9,24 +9,40 @@ function AdminPanel() {
   const [tempNick, setTempNick] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "devices"),
-      (snapshot) => {
-        const list = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setDevices(list);
-      }
-    );
 
-    return () => unsubscribe();
+    // ✅ Function to load devices ONCE
+    const loadDevices = async () => {
+      try {
+        const snap = await getDocs(collection(db, "devices"));
+
+        const list = snap.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+
+        setDevices(list);
+
+      } catch (err) {
+        console.error("Failed to fetch devices:", err);
+      }
+    };
+
+    // 🔥 Load immediately when AdminPanel opens
+    loadDevices();
+
+    // 🔁 Poll every 10 seconds instead of realtime streaming
+    const interval = setInterval(loadDevices, 10000);
+
+    // Cleanup when leaving page
+    return () => clearInterval(interval);
+
   }, []);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setNow(Date.now()); // force re-render every 1 second
-    }, 1000);
+      setNow(Date.now());
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -35,7 +51,7 @@ function AdminPanel() {
     if (!lastHeartbeat) return true; // treat pending write as online
 
     const last = lastHeartbeat.toDate().getTime();
-    return now - last < 20000;
+    return now - last < 120000; // 2 minutes
   };
 
   const setPrimary = async (deviceId) => {
@@ -145,10 +161,8 @@ function AdminPanel() {
           {devices.map(device => (
             <tr key={device.id}>
               <td>
-                {getDisplayName(device)}
                 <div style={{ marginTop: 6 }}>
-                  <td>
-                    {/* ✅ Normal View Mode */}
+                  
                     {editingId !== device.id ? (
                       <>
                         <div style={{ fontWeight: "bold" }}>
@@ -159,31 +173,22 @@ function AdminPanel() {
                           {device.systemName}
                         </div>
 
-                        <button
-                          style={{ marginTop: 6 }}
-                          onClick={() => startEditNick(device)}
-                        >
+                        <button onClick={() => startEditNick(device)}>
                           ✏️ Edit
                         </button>
                       </>
                     ) : (
-                      /* ✅ Edit Mode */
                       <>
                         <input
                           value={tempNick}
                           onChange={(e) => setTempNick(e.target.value)}
-                          placeholder="Enter nickname"
-                          style={{ padding: 6, width: "140px" }}
                         />
 
-                        <div style={{ marginTop: 6 }}>
-                          <button onClick={() => saveNickName(device.id)}>💾 Save</button>{" "}
-                          <button onClick={cancelEditNick}>❌ Cancel</button>
-                        </div>
+                        <button onClick={() => saveNickName(device.id)}>Save</button>
+                        <button onClick={cancelEditNick}>Cancel</button>
                       </>
                     )}
-                  </td>
-
+                  
                 </div>
               </td>
               <td>
