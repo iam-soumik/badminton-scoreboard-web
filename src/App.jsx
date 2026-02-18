@@ -111,7 +111,7 @@ export default function App() {
           lastHeartbeat: serverTimestamp(),
           isOnline: true
         });
-      }, 5000); // every 5 seconds
+      }, 90000); // every 90 seconds
     };
 
     registerDevice();

@@ -22,10 +22,25 @@ export const getDeviceInfo = async () => {
     platform = uaData.platform || "Unknown";
 
     const brands = uaData.brands || [];
-    browser = brands.map(b => b.brand).join(", ");
+
+    // ✅ Remove fake brands
+    const filtered = brands
+      .map(b => b.brand)
+      .filter(
+        name =>
+          !name.toLowerCase().includes("not") &&
+          !name.toLowerCase().includes("brand")
+      );
+
+    // ✅ Pick best browser name
+    if (filtered.includes("Google Chrome")) browser = "Chrome";
+    else if (filtered.includes("Microsoft Edge")) browser = "Edge";
+    else if (filtered.includes("Chromium")) browser = "Chromium";
+    else browser = filtered[0] || "Unknown";
 
     deviceType = uaData.mobile ? "Mobile" : "Desktop";
-  } else {
+  }
+  else {
     // Fallback for Safari / older browsers
     if (/Android/i.test(ua)) platform = "Android";
     else if (/iPhone|iPad/i.test(ua)) platform = "iOS";

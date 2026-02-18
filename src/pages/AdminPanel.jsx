@@ -5,6 +5,8 @@ import { collection, onSnapshot, doc, updateDoc, getDocs } from "firebase/firest
 function AdminPanel() {
   const [devices, setDevices] = useState([]);
   const [now, setNow] = useState(Date.now());
+  const [editingId, setEditingId] = useState(null);
+  const [tempNick, setTempNick] = useState("");
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -106,14 +108,23 @@ function AdminPanel() {
     return <strong>{device.systemName}</strong>;
   };
 
-  const updateNickName = async (deviceId, nickName) => {
-    try {
-      await updateDoc(doc(db, "devices", deviceId), {
-        nickName
-      });
-    } catch (err) {
-      console.error("Nick name update failed", err);
-    }
+  const startEditNick = (device) => {
+    setEditingId(device.id);
+    setTempNick(device.nickName || "");
+  };
+
+  const cancelEditNick = () => {
+    setEditingId(null);
+    setTempNick("");
+  };
+
+  const saveNickName = async (deviceId) => {
+    await updateDoc(doc(db, "devices", deviceId), {
+      nickName: tempNick,
+    });
+
+    setEditingId(null);
+    setTempNick("");
   };
 
   return (
@@ -136,18 +147,49 @@ function AdminPanel() {
               <td>
                 {getDisplayName(device)}
                 <div style={{ marginTop: 6 }}>
-                  <input
-                    type="text"
-                    placeholder="Set nick name"
-                    value={device.nickName || ""}
-                    onChange={(e) =>
-                      updateNickName(device.id, e.target.value)
-                    }
-                  />
+                  <td>
+                    {/* ✅ Normal View Mode */}
+                    {editingId !== device.id ? (
+                      <>
+                        <div style={{ fontWeight: "bold" }}>
+                          {device.nickName || "— No Nickname —"}
+                        </div>
+
+                        <div style={{ fontSize: 12, opacity: 0.7 }}>
+                          {device.systemName}
+                        </div>
+
+                        <button
+                          style={{ marginTop: 6 }}
+                          onClick={() => startEditNick(device)}
+                        >
+                          ✏️ Edit
+                        </button>
+                      </>
+                    ) : (
+                      /* ✅ Edit Mode */
+                      <>
+                        <input
+                          value={tempNick}
+                          onChange={(e) => setTempNick(e.target.value)}
+                          placeholder="Enter nickname"
+                          style={{ padding: 6, width: "140px" }}
+                        />
+
+                        <div style={{ marginTop: 6 }}>
+                          <button onClick={() => saveNickName(device.id)}>💾 Save</button>{" "}
+                          <button onClick={cancelEditNick}>❌ Cancel</button>
+                        </div>
+                      </>
+                    )}
+                  </td>
+
                 </div>
               </td>
               <td>
-                <strong>{device.role}</strong>
+                <span className={`role-badge ${device.role}`}>
+                  {device.role.toUpperCase()}
+                </span>
                 <div style={{ marginTop: 6 }}>
                   <button onClick={() => updateRole(device.id, "admin")}>
                     Admin
@@ -160,7 +202,11 @@ function AdminPanel() {
                   </button>
                 </div>
               </td>
-              <td>{device.mode}</td>
+              <td>
+                <span className={`mode-badge ${device.mode}`}>
+                  {device.mode.toUpperCase()}
+                </span>
+              </td>
               <td>
                 {isOnline(device.lastHeartbeat)
                   ? "🟢 Online"
