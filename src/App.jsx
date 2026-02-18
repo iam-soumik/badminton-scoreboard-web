@@ -9,6 +9,8 @@ import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { buildSystemName, getDeviceId, getDeviceInfo } from "./utils/device";
 import AdminPanel from './pages/AdminPanel'
 import { useDeviceStatus } from './redux/hooks/useDeviceStatus'
+import { syncMatchToServer } from './utils/utility'
+import { manualTwoWaySync } from './utils/syncMatchManually'
 
 
 
@@ -195,7 +197,17 @@ export default function App() {
       }
 
       prevServerRef.current = newServer
-    }, 80)
+    }, 80);
+
+    setTimeout(async () => {
+      const updated = store.getState().game;
+
+      // ✅ Only PRIMARY writes
+      if (device?.mode === "primary") {
+        await syncMatchToServer(updated, device.deviceId);
+      }
+
+    }, 50);
   }
 
   function undoLast() {
@@ -210,6 +222,27 @@ export default function App() {
     dispatch(undo())
     setSetPopup(null)   // 👈 CLOSE POPUP
  }
+
+ async function manualSync() {
+  if (device?.mode !== "active") return;
+
+  const confirm = window.confirm(
+    "This will overwrite server score and take control. Continue?"
+  );
+
+  if (!confirm) return;
+
+  const localState = store.getState().game;
+  const matchRef = doc(db, "matches", "liveMatch");
+
+  await setDoc(matchRef, {
+    gameState: localState,
+    updatedAt: serverTimestamp(),
+    updatedBy: getDeviceId(),
+  });
+
+  alert("✅ Synced successfully. Now set this device as PRIMARY in Admin Panel.");
+}
 
   /* ================= UI ================= */
 
@@ -273,6 +306,12 @@ export default function App() {
           <div className="utility-div">
             <button className="utility-btn" disabled={!canScore} onClick={undoLast}>Undo</button>
             <button className="utility-btn" disabled={!canScore} onClick={announceCurrentScore}> Score </button>
+            <button
+              className="utility-btn"
+              onClick={() => manualTwoWaySync(getDeviceId(), dispatch)}
+            >
+              🔄 Manual Sync
+            </button>
           </div>
           
 

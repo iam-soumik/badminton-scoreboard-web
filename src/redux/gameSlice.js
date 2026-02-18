@@ -19,8 +19,11 @@ const gameSlice = createSlice({
       engine.reset()
       return engine.getState()
     },
+    loadFullState(state, action) {
+      return action.payload;
+    },
   },
 })
 
-export const { addPoint, undo, reset } = gameSlice.actions
+export const { addPoint, undo, reset, loadFullState } = gameSlice.actions
 export default gameSlice.reducer

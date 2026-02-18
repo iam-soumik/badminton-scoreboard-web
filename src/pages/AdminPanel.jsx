@@ -151,10 +151,9 @@ function AdminPanel() {
         <thead>
           <tr>
             <th>Device Info</th>
-            <th>Role</th>
-            <th>Mode</th>
             <th>Status</th>
-            <th>Control</th>
+            <th>Role Control</th>
+            <th>Mode Control</th>
           </tr>
         </thead>
         <tbody>
@@ -191,6 +190,13 @@ function AdminPanel() {
                   
                 </div>
               </td>
+
+              <td>
+                {isOnline(device.lastHeartbeat)
+                  ? "🟢 Online"
+                  : "🔴 Offline"}
+              </td>
+
               <td>
                 <span className={`role-badge ${device.role}`}>
                   {device.role.toUpperCase()}
@@ -207,26 +213,23 @@ function AdminPanel() {
                   </button>
                 </div>
               </td>
+              
+              
               <td>
                 <span className={`mode-badge ${device.mode}`}>
                   {device.mode.toUpperCase()}
                 </span>
-              </td>
-              <td>
-                {isOnline(device.lastHeartbeat)
-                  ? "🟢 Online"
-                  : "🔴 Offline"}
-              </td>
-              <td>
-                <button onClick={() => setPrimary(device.id)}>
-                  Set Primary
-                </button>
-                <button onClick={() => setActive(device.id)}>
-                  Set Active
-                </button>
-                <button onClick={() => setStandby(device.id)}>
-                  Set Standby
-                </button>
+                <div style={{ marginTop: 6 }}>
+                  <button onClick={() => setPrimary(device.id)}>
+                    Set Primary
+                  </button>
+                  <button onClick={() => setActive(device.id)}>
+                    Set Active
+                  </button>
+                  <button onClick={() => setStandby(device.id)}>
+                    Set Standby
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
