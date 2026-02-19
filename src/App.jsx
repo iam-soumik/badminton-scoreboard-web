@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { addPoint, undo } from './redux/gameSlice'
+import { addPoint, pauseMatch, resumeMatch, undo } from './redux/gameSlice'
 import { confirmAction } from './utils/confirm'
 import { useEffect, useState, useRef } from 'react'
 import { speak } from './utils/speak'
@@ -181,8 +181,7 @@ export default function App() {
   function score(courtSide) {
     if (!canScore) return;
     if (game.matchFinished) return;
-    if (game.matchStatus === "paused") return;
-
+    
     // 🛑 No scoring allowed while paused
     if (game.matchStatus === "paused") {
       alert("Match is paused. Resume first.");
