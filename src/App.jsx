@@ -9,9 +9,10 @@ import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { buildSystemName, getDeviceId, getDeviceInfo } from "./utils/device";
 import AdminPanel from './pages/AdminPanel'
 import { useDeviceStatus } from './redux/hooks/useDeviceStatus'
-import { syncMatchToServer } from './utils/utility'
-import { manualTwoWaySync } from './utils/syncMatchManually'
 
+import { manualTwoWaySync } from './utils/syncMatchManually'
+import { pushMatchState } from "./firebase/matchSync";
+import { fetchMatchState } from "./redux/actions/loadMatchFromFirestore";
 
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
 
   const [time, setTime] = useState(new Date())
   const [setPopup, setSetPopup] = useState(null)
+  const [projectorSyncOn, setProjectorSyncOn] = useState(false);
   const prevServerRef = useRef(game.server)
 
   const device = useDeviceStatus();
@@ -31,37 +33,6 @@ export default function App() {
 
   const leftPlayers = game.players[leftTeam]
   const rightPlayers = game.players[rightTeam]
-
-  /* 🧮 SET GRID (TV STYLE) */
-  const MAX_SETS = 3
-  const setGrid = Array.from({ length: MAX_SETS }, (_, i) => {
-    const completed = game.setResults[i]
-
-    if (completed) {
-      return {
-        teamA: completed.teamA,
-        teamB: completed.teamB,
-        status: 'completed',
-      }
-    }
-
-    if (i + 1 === game.gameNumber) {
-      return {
-        teamA: game.score.teamA,
-        teamB: game.score.teamB,
-        status: 'current',
-      }
-    }
-
-    return { teamA: '', teamB: '', status: 'future' }
-  })
-
-  /* 🎯 SERVING INDICATOR */
-  function isServingPlayer(team, player) {
-    if (game.matchFinished) return false
-    if (game.server.team !== team) return false
-    return game.players[team][game.server.playerIndex]?.name === player.name
-  }
 
   /* ⏰ CLOCK */
   useEffect(() => {
@@ -85,50 +56,94 @@ export default function App() {
 
   }, [game.lastSetResult])
 
+  /* 🔄 PROJECTOR SYNC */
+  useEffect(() => {
+    if (device?.mode !== "projector") return;
+    if (!projectorSyncOn) return;
+    if (game.matchStatus !== "live") return;
+
+    console.log("📽️ Projector Sync Running");
+
+    const interval = setInterval(() => {
+      fetchMatchState(dispatch);
+    }, 5000);
+
+    return () => clearInterval(interval);
+
+  }, [device?.mode, projectorSyncOn, game.matchStatus]);
+
+  /* ✅ 1️⃣ Device Register (Runs once) */
+  useEffect(() => {
+    const deviceId = getDeviceId();
+    const deviceRef = doc(db, "devices", deviceId);
+
+    const registerDevice = async () => {
+      const info = await getDeviceInfo();
+      const systemName = buildSystemName(info);
+
+      await setDoc(
+        deviceRef,
+        {
+          deviceId,
+          role: "admin",
+          mode: "standby",
+          systemName,
+          nickName: "",
+          createdAt: serverTimestamp(),
+          lastHeartbeat: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log("✅ Device registered:", deviceId);
+    };
+
+    registerDevice();
+  }, []);
+
+  /* ✅ 2️⃣💓 HEARTBEAT (Only Active + Live Match) */
   useEffect(() => {
     const deviceId = getDeviceId();
     const deviceRef = doc(db, "devices", deviceId);
 
     let intervalId;
 
-    const registerDevice = async () => {
-      const info = await getDeviceInfo();
-      const systemName = buildSystemName(info);
+    // ✅ Heartbeat allowed only when device participates in scoring
+    const shouldHeartbeat =
+      (device?.mode === "primary" || device?.mode === "active") &&
+      game.matchStatus === "live";
 
-      await setDoc(deviceRef, {
-        deviceId,
-        role: "admin",
-        mode: "standby",
+    if (!shouldHeartbeat) {
+      console.log("🛑 Heartbeat OFF (not needed)");
+      return;
+    }
+
+    console.log("💓 Heartbeat ON");
+
+    intervalId = setInterval(async () => {
+      await updateDoc(deviceRef, {
         lastHeartbeat: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        systemName,
-        nickName: ""
-      }, { merge: true });
-    };
+      });
 
-    const startHeartbeat = () => {
-      intervalId = setInterval(async () => {
+      console.log("💓 Heartbeat sent");
+    }, 90000);
 
-        // ✅ Only active devices write
-        if (device?.mode !== "primary" && device?.mode !== "active") return;
-
-        await updateDoc(deviceRef, {
-          lastHeartbeat: serverTimestamp(),
-          isOnline: true
-        });
-
-      }, 90000);
-    };
-
-    registerDevice();
-    startHeartbeat();
-
+    // Cleanup when paused/ended or device becomes standby
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      clearInterval(intervalId);
+      console.log("🛑 Heartbeat stopped");
     };
+  }, [device?.mode, game.matchStatus]);
 
-  }, [device?.mode]);
 
+  /* Primary Auto Push to Firestore (ONLY LIVE) */
+  useEffect(() => {
+    if (device?.mode !== "primary") return;
+    if (game.matchStatus !== "live") return;
+
+    pushMatchState(game);
+
+  }, [game, device?.mode, game.matchStatus]);
 
   function speakIfPrimary(text) {
     if (device?.mode === "primary") {
@@ -164,51 +179,68 @@ export default function App() {
 
   /* ➕ SCORE */
   function score(courtSide) {
-    if (!canScore) return;          // 🔒 HARD BLOCK
+    if (!canScore) return;
     if (game.matchFinished) return;
-    const prevServer = prevServerRef.current
-    dispatch(addPoint(courtSide))
+    if (game.matchStatus === "paused") return;
 
-    setTimeout(() => {
-      const updated = store.getState().game
+    // 🛑 No scoring allowed while paused
+    if (game.matchStatus === "paused") {
+      alert("Match is paused. Resume first.");
+      return;
+    }
 
-      if (updated.lastSetResult && !updated.matchFinished) {
-        prevServerRef.current = updated.server
-        return
-      }
+    const prevServer = prevServerRef.current;
 
-      const newServer = updated.server
-      const sA = updated.score.teamA
-      const sB = updated.score.teamB
-
-      const scoreText =
-        newServer.team === 'teamA' ? `${sA} ${sB}` : `${sB} ${sA}`
-
-      const serviceChanged =
-        prevServer.team !== newServer.team ||
-        prevServer.playerIndex !== newServer.playerIndex
-
-      if (serviceChanged && prevServer.team !== newServer.team) {
-        speakIfPrimary(
-          `Service over. ${updated.teamInfo[newServer.team]} to serve. ${scoreText}`
-        )
-      } else {
-        speakIfPrimary(scoreText)
-      }
-
-      prevServerRef.current = newServer
-    }, 80);
+    // ✅ Local scoring always
+    dispatch(addPoint(courtSide));
 
     setTimeout(async () => {
       const updated = store.getState().game;
 
-      // ✅ Only PRIMARY writes
-      if (device?.mode === "primary") {
-        await syncMatchToServer(updated, device.deviceId);
+      // 🛑 If set just ended → do not announce point again
+      if (updated.lastSetResult && !updated.matchFinished) {
+        prevServerRef.current = updated.server;
+        return;
       }
 
-    }, 50);
+      // ✅ PRIMARY pushes score to Firestore (ONLY ONE WRITE)
+      /*if (device?.mode === "primary") {
+        await pushMatchState(updated);
+      }*/
+
+      // 🎯 Announcement Logic
+      const newServer = updated.server;
+
+      const sA = updated.score.teamA;
+      const sB = updated.score.teamB;
+
+      // Server team score first
+      const scoreText =
+        newServer.team === "teamA"
+          ? `${sA} ${sB}`
+          : `${sB} ${sA}`;
+
+      // Detect service change
+      const serviceChanged =
+        prevServer.team !== newServer.team ||
+        prevServer.playerIndex !== newServer.playerIndex;
+
+      if (serviceChanged && prevServer.team !== newServer.team) {
+        // 🔄 Service Over
+        speakIfPrimary(
+          `Service over. ${updated.teamInfo[newServer.team]} to serve. ${scoreText}`
+        );
+      } else {
+        // ✅ Normal rally announce
+        speakIfPrimary(scoreText);
+      }
+
+      // Update server ref
+      prevServerRef.current = newServer;
+
+    }, 80);
   }
+
 
   function undoLast() {
     if (!canScore) return;          // 🔒
@@ -244,6 +276,37 @@ export default function App() {
   alert("✅ Synced successfully. Now set this device as PRIMARY in Admin Panel.");
 }
 
+
+/* 🧮 SET GRID (TV STYLE) */
+  const MAX_SETS = 3
+  const setGrid = Array.from({ length: MAX_SETS }, (_, i) => {
+    const completed = game.setResults[i]
+
+    if (completed) {
+      return {
+        teamA: completed.teamA,
+        teamB: completed.teamB,
+        status: 'completed',
+      }
+    }
+
+    if (i + 1 === game.gameNumber) {
+      return {
+        teamA: game.score.teamA,
+        teamB: game.score.teamB,
+        status: 'current',
+      }
+    }
+
+    return { teamA: '', teamB: '', status: 'future' }
+  })
+
+  /* 🎯 SERVING INDICATOR */
+  function isServingPlayer(team, player) {
+    if (game.matchFinished) return false
+    if (game.server.team !== team) return false
+    return game.players[team][game.server.playerIndex]?.name === player.name
+  }
   /* ================= UI ================= */
 
   return (
@@ -259,6 +322,22 @@ export default function App() {
       </header>
 
       <main className={`court ${game.matchFinished ? 'match-finished' : ''}`}>
+
+        {device?.mode === "projector" && (
+          <div className="projector-controls">
+            <h3>📽️ Projector Display Mode</h3>
+
+            {!projectorSyncOn ? (
+              <button onClick={() => setProjectorSyncOn(true)}>
+                ▶ Start Live Sync
+              </button>
+            ) : (
+              <button onClick={() => setProjectorSyncOn(false)}>
+                ⏸ Stop Sync
+              </button>
+            )}
+          </div>
+        )}
 
         {/* LEFT COURT */}
         <div className="team left">
@@ -308,11 +387,31 @@ export default function App() {
             <button className="utility-btn" disabled={!canScore} onClick={announceCurrentScore}> Score </button>
             <button
               className="utility-btn"
-              disabled={!canScore}   // 🔒 Lock standby devices
-              onClick={() => manualTwoWaySync(device?.mode, getDeviceId(), dispatch)}
+              disabled={device?.mode === "standby" || game.matchStatus !== "live"}
+              onClick={() =>
+                manualTwoWaySync(device?.mode, getDeviceId(), dispatch)
+              }
             >
               🔄 Manual Sync
             </button>
+            {game.matchStatus === "live" && (
+              <button
+                className="utility-btn"
+                onClick={() => dispatch(pauseMatch())}
+              >
+                ⏸ Pause
+              </button>
+            )}
+
+            {game.matchStatus === "paused" && (
+              <button
+                className="utility-btn"
+                onClick={() => dispatch(resumeMatch())}
+              >
+                ▶ Resume
+              </button>
+            )}
+
           </div>
           
 

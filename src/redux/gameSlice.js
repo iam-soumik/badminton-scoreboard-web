@@ -22,8 +22,26 @@ const gameSlice = createSlice({
     loadFullState(state, action) {
       return action.payload;
     },
+    setFullState(state, action) {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    },
+    pauseMatch(state) {
+      if (state.matchStatus === "live") {
+        state.matchStatus = "paused";
+      }
+    },
+
+    resumeMatch(state) {
+      if (state.matchStatus === "paused") {
+        state.matchStatus = "live";
+      }
+    },
+
   },
 })
 
-export const { addPoint, undo, reset, loadFullState } = gameSlice.actions
+export const { addPoint, undo, reset, loadFullState, setFullState, pauseMatch, resumeMatch  } = gameSlice.actions
 export default gameSlice.reducer

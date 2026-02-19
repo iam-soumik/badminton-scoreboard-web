@@ -64,6 +64,7 @@ export function createScoringEngine() {
       },
 
       history: [],
+      matchStatus: "idle",   // idle | live | paused | finished
     }
   }
 
@@ -139,6 +140,16 @@ export function createScoringEngine() {
   function addPoint(courtSide) {
     if (state.matchFinished) return
 
+    // ✅ Auto-start match on first rally
+    if (state.matchStatus === "idle") {
+      state.matchStatus = "live";
+    }
+    
+    // ✅ If paused, resume automatically when scoring happens
+    if (state.matchStatus === "paused") {
+      state.matchStatus = "live";
+    }
+
     snapshot()
 
     const team = state.courtSides[courtSide]
@@ -191,6 +202,7 @@ export function createScoringEngine() {
 
       if (isMatchOver) {
         state.matchFinished = true
+        state.matchStatus = "finished";
         return   // 🔒 DO NOT swap courts, DO NOT reset scores
       }
 
@@ -206,6 +218,7 @@ export function createScoringEngine() {
       state.score.teamB = 0
       state.started = false
       state.thirdGameSwapDone = false
+
     }
   }
 
@@ -220,9 +233,22 @@ export function createScoringEngine() {
     state = initialState()
   }
 
+  function pauseMatch() {
+    if (state.matchStatus === "live") {
+      state.matchStatus = "paused";
+    }
+  }
+
+  function resumeMatch() {
+    if (state.matchStatus === "paused") {
+      state.matchStatus = "live";
+    }
+  }
+
+
   function getState() {
     return JSON.parse(JSON.stringify(state))
   }
 
-  return { addPoint, undo, reset, getState }
+  return { addPoint, undo, reset, getState, pauseMatch, resumeMatch }
 }

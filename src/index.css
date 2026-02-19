@@ -336,6 +336,12 @@ button:hover {
   opacity: 0.85;
 }
 
+/* STANDBY = Blue */
+.mode-badge.projector {
+  background: #3c75e7;
+  opacity: 0.85;
+}
+
 .role-badge {
   padding: 3px 8px;
   border-radius: 8px;
@@ -357,4 +363,23 @@ button:hover {
 .role-badge.helper {
   background: #f59e0b;
   color: black;
+}
+
+.projector-controls {
+  background: #facc15;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  margin: 10px;
+  color: black;
+  font-weight: bold;
+}
+
+.projector-controls button {
+  padding: 8px 14px;
+  margin-top: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
 }

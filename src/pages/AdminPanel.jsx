@@ -99,6 +99,12 @@ function AdminPanel() {
     });
   };
 
+  const setProjector = async (deviceId) => {
+    await updateDoc(doc(db, "devices", deviceId), {
+      mode: "projector"
+    });
+  };
+  
   const updateRole = async (deviceId, newRole) => {
     try {
       await updateDoc(doc(db, "devices", deviceId), {
@@ -228,6 +234,9 @@ function AdminPanel() {
                   </button>
                   <button onClick={() => setStandby(device.id)}>
                     Set Standby
+                  </button>
+                  <button onClick={() => setProjector(device.id)}>
+                    Set Projector
                   </button>
                 </div>
               </td>
