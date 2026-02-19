@@ -181,16 +181,10 @@ export default function App() {
   function score(courtSide) {
     if (!canScore) return;
     if (game.matchFinished) return;
-    
-    // 🛑 No scoring allowed while paused
-    if (game.matchStatus === "paused") {
-      alert("Match is paused. Resume first.");
-      return;
-    }
 
     const prevServer = prevServerRef.current;
 
-    // ✅ Local scoring always
+    // ✅ Local scoring always. Allow scoring even if paused (engine will auto-resume)
     dispatch(addPoint(courtSide));
 
     setTimeout(async () => {
@@ -264,7 +258,7 @@ export default function App() {
   if (!confirm) return;
 
   const localState = store.getState().game;
-  const matchRef = doc(db, "matches", "liveMatch");
+  const matchRef = doc(db, "matches", "live");
 
   await setDoc(matchRef, {
     gameState: localState,

@@ -9,7 +9,7 @@ export async function manualTwoWaySync(deviceMode, deviceId, dispatch) {
     alert("❌ Sync not allowed from standby/projector device.");
     return;
   }
-  const matchRef = doc(db, "matches", "liveMatch");
+  const matchRef = doc(db, "matches", "live");
 
   // 1️⃣ Get Local State
   const localGame = store.getState().game;

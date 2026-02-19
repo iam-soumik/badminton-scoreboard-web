@@ -65,6 +65,7 @@ export function createScoringEngine() {
 
       history: [],
       matchStatus: "idle",   // idle | live | paused | finished
+      revision: 0,
     }
   }
 
@@ -84,6 +85,7 @@ export function createScoringEngine() {
             started: state.started,
             thirdGameSwapDone: state.thirdGameSwapDone,
             matchFinished: state.matchFinished,
+            matchStatus: state.matchStatus,   // ✅ ADD THIS
             teamInfo: state.teamInfo,   // 👈 REQUIRED
         }
   }
@@ -144,7 +146,7 @@ export function createScoringEngine() {
     if (state.matchStatus === "idle") {
       state.matchStatus = "live";
     }
-    
+
     // ✅ If paused, resume automatically when scoring happens
     if (state.matchStatus === "paused") {
       state.matchStatus = "live";
@@ -166,6 +168,9 @@ export function createScoringEngine() {
     }
 
     state.score[team]++
+
+    // ✅ Increase revision for sync
+    state.revision = (state.revision || 0) + 1; 
 
     const sameServer = state.server.team === team
     updateServicePosition(team, sameServer)

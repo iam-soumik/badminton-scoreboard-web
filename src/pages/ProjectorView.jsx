@@ -6,7 +6,7 @@ export default function ProjectorView() {
   const [game, setGame] = useState(null);
 
   useEffect(() => {
-    const matchRef = doc(db, "matches", "liveMatch");
+    const matchRef = doc(db, "matches", "live");
 
     const unsub = onSnapshot(matchRef, (snap) => {
       if (snap.exists()) {
