@@ -308,7 +308,8 @@ export default function App() {
             <button className="utility-btn" disabled={!canScore} onClick={announceCurrentScore}> Score </button>
             <button
               className="utility-btn"
-              onClick={() => manualTwoWaySync(getDeviceId(), dispatch)}
+              disabled={!canScore}   // 🔒 Lock standby devices
+              onClick={() => manualTwoWaySync(device?.mode, getDeviceId(), dispatch)}
             >
               🔄 Manual Sync
             </button>
