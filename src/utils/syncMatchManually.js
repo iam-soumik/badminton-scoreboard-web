@@ -3,7 +3,12 @@ import { db } from "../firebase";
 import { store } from "../redux/store";
 import { loadFullState } from "../redux/gameSlice";
 
-export async function manualTwoWaySync(deviceId, dispatch) {
+export async function manualTwoWaySync(deviceMode, deviceId, dispatch) {
+  // 🔒 Block standby/projector devices
+  if (deviceMode !== "primary" && deviceMode !== "active") {
+    alert("❌ Sync not allowed from standby/projector device.");
+    return;
+  }
   const matchRef = doc(db, "matches", "liveMatch");
 
   // 1️⃣ Get Local State
