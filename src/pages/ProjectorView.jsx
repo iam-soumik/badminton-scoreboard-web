@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import ScoreboardLayout from "../components/ScoreboardLayout";
 
 export default function ProjectorView() {
 
@@ -24,7 +25,6 @@ export default function ProjectorView() {
           lastRevisionRef.current = serverRevision;
           setGame(data.gameState);
 
-          // 🛑 Stop polling if match finished
           if (data.gameState?.matchStatus === "finished") {
             clearInterval(interval);
           }
@@ -36,7 +36,6 @@ export default function ProjectorView() {
     };
 
     checkRevision();
-
     interval = setInterval(checkRevision, 4000);
 
     return () => clearInterval(interval);
@@ -44,13 +43,25 @@ export default function ProjectorView() {
   }, []);
 
   if (!game) {
-    return <h2 style={{ textAlign: "center" }}>Waiting for match...</h2>;
+    return (
+      <div style={{ textAlign: "center", padding: "50px" }}>
+        Waiting for match...
+      </div>
+    );
   }
 
   return (
-    <div className="projector-screen">
-      <h1>{game.teamInfo.teamA} {game.score.teamA}</h1>
-      <h1>{game.teamInfo.teamB} {game.score.teamB}</h1>
+    <div className="app-root">
+      <ScoreboardLayout
+        game={game}
+        device={{ mode: "projector" }}
+        canScore={false}
+        isServingPlayer={(team, player) =>
+          game.server.team === team &&
+          game.players[team][game.server.playerIndex]?.name === player.name
+        }
+        readOnly={true}
+      />
     </div>
   );
 }

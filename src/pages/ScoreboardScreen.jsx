@@ -1,20 +1,20 @@
-import { useDispatch, useSelector } from 'react-redux'
-import { addPoint, pauseMatch, resumeMatch, undo } from '../redux/gameSlice'
-import { useEffect, useState, useRef } from 'react'
-import { speak } from '../utils/speak'
-import { store } from '../redux/store'
+import { useDispatch, useSelector } from 'react-redux';
+import { addPoint, pauseMatch, resumeMatch, undo } from '../redux/gameSlice';
+import { useEffect, useState, useRef } from 'react';
+import { speak } from '../utils/speak';
+import { store } from '../redux/store';
 import { getDeviceId } from "../utils/device";
 import { pushMatchState } from "../firebase/matchSync";
 
 import CenterPanel from '../components/CenterPanel';
-import TopBar from '../components/TopBar';
 import LeftTeamPanel from '../components/LeftTeamPanel';
 import RightTeamPanel from '../components/RightTeamPanel';
 import SetPopup from '../components/SetPopup';
 import { manualTwoWaySync } from '../utils/syncMatchManually'
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
-import confirmAction from '../utils/utility'
+import confirmAction from '../utils/utility';
+import ScoreboardLayout from "../components/ScoreboardLayout";
 
 export default function ScoreboardScreen({ device }) {
 
@@ -202,50 +202,25 @@ export default function ScoreboardScreen({ device }) {
   return (
     <div className="app-root">
 
-      <main className="court">
-
-        <LeftTeamPanel
-          team="left"
-          game={game}
-          score={score}
-          canScore={canScore}
-          isServingPlayer={isServingPlayer}
+        <ScoreboardLayout
+        game={game}
+        device={device}
+        canScore={canScore}
+        score={score}
+        undo={undoLast}
+        announceScore={announceCurrentScore}
+        pause={() => dispatch(pauseMatch())}
+        resume={() => dispatch(resumeMatch())}
+        manualSync={() =>
+            manualTwoWaySync(device?.mode, getDeviceId(), dispatch)
+        }
+        isServingPlayer={isServingPlayer}
+        setPopup={setPopup}
+        setSetPopup={setSetPopup}
+        announceMatchResult={announceMatchResult}
+        readOnly={false}
         />
 
-        <CenterPanel
-            game={game}
-            canScore={canScore}
-            undo={undoLast}
-            announceScore={announceCurrentScore}
-            manualSync={() =>
-                manualTwoWaySync(device?.mode, getDeviceId(), dispatch)
-            }
-            pause={() => dispatch(pauseMatch())}
-            resume={() => dispatch(resumeMatch())}
-            deviceMode={device?.mode}
-        />
-
-        <RightTeamPanel
-          team="right"
-          game={game}
-          score={score}
-          canScore={canScore}
-          isServingPlayer={isServingPlayer}
-        />
-
-        {setPopup && (
-            <SetPopup
-                result={setPopup}
-                game={game}
-                canScore={canScore}
-                deviceMode={device?.mode}
-                onUndo={undoFromPopup}
-                onAnnounce={announceMatchResult}
-                onClose={() => setSetPopup(null)}
-            />
-        )}
-
-      </main>
     </div>
   );
 }

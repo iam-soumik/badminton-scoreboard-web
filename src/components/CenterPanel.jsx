@@ -6,7 +6,8 @@ export default function CenterPanel({
   manualSync,
   pause,
   resume,
-  deviceMode
+  deviceMode,
+  readOnly = false
 }) {
 
   /* 🧮 Build Set Grid */
@@ -69,54 +70,56 @@ export default function CenterPanel({
       </div>
 
       {/* 🎛 UTILITY CONTROLS */}
-      <div className="utility-div">
+      {!readOnly && (
+        <div className="utility-div">
 
-        <button
-          className="utility-btn"
-          disabled={!canScore}
-          onClick={undo}
-        >
-          Undo
-        </button>
-
-        <button
-          className="utility-btn"
-          disabled={!canScore}
-          onClick={announceScore}
-        >
-          Score
-        </button>
-
-        <button
-          className="utility-btn"
-          disabled={
-            deviceMode === "standby" ||
-            game.matchStatus !== "live"
-          }
-          onClick={manualSync}
-        >
-          🔄 Manual Sync
-        </button>
-
-        {game.matchStatus === "live" && (
-          <button
+            <button
             className="utility-btn"
-            onClick={pause}
-          >
-            ⏸ Pause
-          </button>
-        )}
+            disabled={!canScore}
+            onClick={undo}
+            >
+            Undo
+            </button>
 
-        {game.matchStatus === "paused" && (
-          <button
+            <button
             className="utility-btn"
-            onClick={resume}
-          >
-            ▶ Resume
-          </button>
-        )}
+            disabled={!canScore}
+            onClick={announceScore}
+            >
+            Score
+            </button>
 
-      </div>
+            <button
+            className="utility-btn"
+            disabled={
+                deviceMode === "standby" ||
+                game.matchStatus !== "live"
+            }
+            onClick={manualSync}
+            >
+            🔄 Manual Sync
+            </button>
+
+            {game.matchStatus === "live" && (
+            <button
+                className="utility-btn"
+                onClick={pause}
+            >
+                ⏸ Pause
+            </button>
+            )}
+
+            {game.matchStatus === "paused" && (
+            <button
+                className="utility-btn"
+                onClick={resume}
+            >
+                ▶ Resume
+            </button>
+            )}
+
+        </div>
+      )}
 
       {/* 📢 GAME INFO */}
       <div className="game-info">
