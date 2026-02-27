@@ -10,23 +10,24 @@ export default function ProjectorView() {
   useEffect(() => {
     const matchRef = doc(db, "matches", "live");
 
+    let interval;
+
     const checkRevision = async () => {
       try {
         const snap = await getDoc(matchRef);
-
         if (!snap.exists()) return;
 
         const data = snap.data();
         const serverRevision = data.revision || 0;
 
-        // Only fetch full state if revision changed
         if (serverRevision !== lastRevisionRef.current) {
-
-          console.log("📽 Revision changed:", serverRevision);
-
           lastRevisionRef.current = serverRevision;
+          setGame(data.gameState);
 
-          setGame(data.gameState); // full state already included
+          // 🛑 Stop polling if match finished
+          if (data.gameState?.matchStatus === "finished") {
+            clearInterval(interval);
+          }
         }
 
       } catch (err) {
@@ -34,10 +35,9 @@ export default function ProjectorView() {
       }
     };
 
-    // Initial fetch
     checkRevision();
 
-    const interval = setInterval(checkRevision, 4000);
+    interval = setInterval(checkRevision, 4000);
 
     return () => clearInterval(interval);
 
