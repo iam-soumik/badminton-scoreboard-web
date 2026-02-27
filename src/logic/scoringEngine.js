@@ -87,6 +87,7 @@ export function createScoringEngine() {
             matchFinished: state.matchFinished,
             matchStatus: state.matchStatus,   // ✅ ADD THIS
             teamInfo: state.teamInfo,   // 👈 REQUIRED
+            revision: state.revision
         }
   }
 

@@ -8,6 +8,7 @@ export async function fetchMatchState(dispatch) {
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
-    dispatch(setFullState(snap.data()));
+    const serverGame = snap.data().gameState;
+    dispatch(setFullState(serverGame));
   }
 }

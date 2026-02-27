@@ -141,7 +141,7 @@ export default function App() {
     if (device?.mode !== "primary") return;
     if (game.matchStatus !== "live") return;
 
-    pushMatchState(game);
+    pushMatchState(game, getDeviceId());
 
   }, [game, device?.mode, game.matchStatus]);
 
