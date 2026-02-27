@@ -542,3 +542,14 @@ button:hover {
   50%  { opacity: 1; }
   100% { opacity: 0.4; }
 }
+
+/* ================= SCORE ANIMATION ================= */
+
+.score-animate {
+  animation: scorePop 0.25s ease-out;
+}
+
+@keyframes scorePop {
+  0%   { transform: scale(1.2); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}

@@ -27,8 +27,10 @@ export default function RightTeamPanel({
       ))}
 
       <div className="team-footer">
-        <div className="team-score">
-          {game.score[rightTeam]}
+        <div
+            key={game.score[rightTeam]}
+            className="team-score score-animate">
+                {game.score[rightTeam]}
         </div>
 
         <button

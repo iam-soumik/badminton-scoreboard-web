@@ -28,8 +28,10 @@ export default function LeftTeamPanel({
       ))}
 
       <div className="team-footer">
-        <div className="team-score">
-          {game.score[leftTeam]}
+        <div
+            key={game.score[leftTeam]}
+            className="team-score score-animate">
+            {game.score[leftTeam]}
         </div>
 
         <button
