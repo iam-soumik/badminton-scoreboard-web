@@ -22,6 +22,12 @@ export default function ScoreboardLayout({
 
   return (
     <main className={`court ${game.matchFinished ? 'match-finished' : ''}`}>
+        {
+            game.matchStatus === "live" && (
+            <div className="live-indicator">
+                ● LIVE
+            </div>
+        )}
 
       <LeftTeamPanel
         game={game}
