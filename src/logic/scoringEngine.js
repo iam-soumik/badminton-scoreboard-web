@@ -63,6 +63,11 @@ export function createScoringEngine() {
         firstServerPlayerIndex: 0,
       },
 
+      prematch: {
+        matchId: null,
+        matchLabel: "",
+      },
+
       history: [],
       matchStatus: "idle",   // idle | live | paused | finished
       revision: 0,
@@ -255,10 +260,61 @@ export function createScoringEngine() {
     }
   }
 
-
   function getState() {
     return JSON.parse(JSON.stringify(state))
   }
 
-  return { addPoint, undo, reset, getState, pauseMatch, resumeMatch, setFullState }
+  function loadPrematchData(payload) {
+
+    const { matchId, matchLabel, teamA, teamB } = payload;
+
+    state.prematch.matchId = matchId;
+    state.prematch.matchLabel = matchLabel;
+
+    state.teamInfo.teamA = teamA.name;
+    state.teamInfo.teamB = teamB.name;
+
+    state.players.teamA = teamA.players.map((p, i) => ({
+      name: p,
+      court: i === 0 ? "RIGHT" : "LEFT"
+    }));
+
+    state.players.teamB = teamB.players.map((p, i) => ({
+      name: p,
+      court: i === 0 ? "RIGHT" : "LEFT"
+    }));
+
+    state.matchConfig.firstServerTeam = "teamA";
+    state.matchConfig.firstServerPlayerIndex = 0;
+
+    state.started = false;
+    state.matchFinished = false;
+    state.matchStatus = "idle";
+
+    state.revision = (state.revision || 0) + 1;
+  }
+
+  function startMatch() {
+    if (state.matchStatus !== "idle") return;
+
+    state.matchStatus = "live";
+    state.revision++;
+  }
+
+  // This swap function is for prematch screen.
+  function swapPlayers(team) {
+    const p1 = state.players[team][0];
+    const p2 = state.players[team][1];
+
+    state.players[team] = [
+      { ...p2 },
+      { ...p1 }
+    ];
+
+    state.revision++;
+  }
+  return { addPoint, undo, reset, getState, 
+            pauseMatch, resumeMatch, startMatch,
+            setFullState, loadPrematchData, swapPlayers 
+  }
 }

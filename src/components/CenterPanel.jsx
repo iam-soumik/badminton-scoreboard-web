@@ -1,3 +1,5 @@
+import PrematchPanel from "./PrematchPanel";
+
 export default function CenterPanel({
   game,
   canScore,
@@ -38,6 +40,11 @@ export default function CenterPanel({
 
   return (
     <div className="center-panel">
+
+      {/* 🔧 PREMATCH SECTION */}
+      {game.matchStatus === "idle" && (
+        <PrematchPanel game={game} />
+      )}
 
       {/* 🏆 SET GRID */}
       <div className="set-grid">

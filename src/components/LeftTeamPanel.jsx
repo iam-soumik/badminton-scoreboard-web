@@ -1,3 +1,5 @@
+import { swapPlayers } from "../redux/gameSlice";
+
 export default function LeftTeamPanel({
   game,
   score,
@@ -11,27 +13,53 @@ export default function LeftTeamPanel({
 
   return (
     <div className="team left">
+      <div className="players-section">
+        {/* Player 1 */}
+        {leftPlayers[0] && (
+          <div
+            className={`
+              player-badge
+              court-${leftPlayers[0].court.toLowerCase()}
+              ${isServingPlayer(leftTeam, leftPlayers[0])
+                ? "serving-player"
+                : "partner-player"}
+            `}
+          >
+            {leftPlayers[0].name}
+          </div>
+        )}
 
-      {leftPlayers.map(player => (
-        <div
-          key={player.name}
-          className={`
-            player-badge
-            court-${player.court.toLowerCase()}
-            ${isServingPlayer(leftTeam, player)
-              ? "serving-player"
-              : "partner-player"}
-          `}
-        >
-          {player.name}
-        </div>
-      ))}
+        {/* 🔄 Swap Button Between Players */}
+        {game.matchStatus === "idle" && (
+          <button
+            className="swap-btn"
+            onClick={() => dispatch(swapPlayers(leftTeam))}
+          >
+            🔄 Swap
+          </button>
+        )}
 
+        {/* Player 2 */}
+        {leftPlayers[1] && (
+          <div
+            className={`
+              player-badge
+              court-${leftPlayers[1].court.toLowerCase()}
+              ${isServingPlayer(leftTeam, leftPlayers[1])
+                ? "serving-player"
+                : "partner-player"}
+            `}
+          >
+            {leftPlayers[1].name}
+          </div>
+        )}
+      </div>
       <div className="team-footer">
         <div
-            key={game.score[leftTeam]}
-            className="team-score score-animate">
-            {game.score[leftTeam]}
+          key={game.score[leftTeam]}
+          className="team-score score-animate"
+        >
+          {game.score[leftTeam]}
         </div>
 
         <button

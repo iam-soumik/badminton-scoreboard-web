@@ -78,8 +78,18 @@ html, body, #root {
   padding: 0;
   border-radius: 20px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
+.players-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* center horizontally */
+  gap: 8px;              /* space between player & swap */
+  margin-top: 20px;      /* push down slightly */
+}
 
 .team.left {
   background: linear-gradient(180deg, #064e3b, #022c22);
@@ -129,7 +139,51 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: 16px;
+}
+
+.prematch-panel {
+  background: #388150;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.prematch-panel select {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.prematch-panel button {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 6px;
+}
+
+.prematch-title {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+.swap-btn {
+  position: absolute;
+  top: 87px;          /* midway between 40px and 120px */
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 4px 10px;
+  font-size: 12px;
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.swap-btn:hover {
+  background: #333;
 }
 
 .utility-btn {

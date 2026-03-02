@@ -41,8 +41,28 @@ const gameSlice = createSlice({
       }
     },
 
+    loadPrematch(state, action) {
+      engine.loadPrematchData(action.payload);
+      return engine.getState();
+    },
+
+    startMatch(state) {
+      engine.startMatch();
+      return engine.getState();
+    },
+
+    swapPlayers(state, action) {
+      engine.swapPlayers(action.payload);
+      return engine.getState();
+    },
+
   },
 })
 
-export const { addPoint, undo, reset, loadFullState, setFullState, pauseMatch, resumeMatch  } = gameSlice.actions
-export default gameSlice.reducer
+export const { addPoint, undo, reset, 
+               loadFullState, setFullState, 
+               startMatch, pauseMatch, resumeMatch, 
+               loadPrematch, swapPlayers 
+} = gameSlice.actions;
+
+export default gameSlice.reducer;

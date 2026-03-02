@@ -2,6 +2,7 @@ import LeftTeamPanel from "./LeftTeamPanel";
 import RightTeamPanel from "./RightTeamPanel";
 import CenterPanel from "./CenterPanel";
 import SetPopup from "./SetPopup";
+import PrematchPanel from "./PrematchPanel";
 
 export default function ScoreboardLayout({
   game,
@@ -17,7 +18,7 @@ export default function ScoreboardLayout({
   setPopup,
   setSetPopup,
   announceMatchResult,
-  readOnly = false
+  readOnly = false,
 }) {
 
   return (
@@ -28,7 +29,7 @@ export default function ScoreboardLayout({
                 ● LIVE
             </div>
         )}
-
+      
       <LeftTeamPanel
         game={game}
         score={readOnly ? () => {} : score}

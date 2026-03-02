@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { addPoint, loadFullState, pauseMatch, resumeMatch, undo } from '../redux/gameSlice';
+import { addPoint, loadFullState, pauseMatch, resumeMatch, swapPlayers, undo } from '../redux/gameSlice';
 import { useEffect, useState, useRef } from 'react';
 import { speak } from '../utils/speak';
 import { store } from '../redux/store';
@@ -33,6 +33,7 @@ export default function ScoreboardScreen({ device }) {
     prevServerRef.current = game.server;
   }, [game.server]);
 
+  
   /* 🔥 Primary Auto Push to Firestore (ONLY LIVE) */
   useEffect(() => {
     if (!hydrated) return;   
@@ -219,6 +220,10 @@ export default function ScoreboardScreen({ device }) {
         if (!canScore) return;          // 🔒
         if (!confirmAction('Undo last point?')) return
         dispatch(undo())
+  }
+
+  function handleSwap(team) {
+    dispatch(swapPlayers(team));
   }
 
   return (
