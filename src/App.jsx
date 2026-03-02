@@ -16,6 +16,7 @@ import LoginScreen from "./pages/LoginScreen";
 export default function App() {
 
   const [user, setUser] = useState(null);
+  const [deviceReady, setDeviceReady] = useState(false);
   const [screen, setScreen] = useState(() => {
     return localStorage.getItem("currentScreen") || "menu";
   });
@@ -30,49 +31,55 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  /* ✅ 1️⃣ Device Register (Runs once) */
-  useEffect(() => {
-    const deviceId = getDeviceId();
-    const deviceRef = doc(db, "devices", deviceId);
+/* ✅ 1️⃣ Device Register (After Login Ready) */
+useEffect(() => {
 
-    const registerDevice = async () => {
-      const snap = await getDoc(deviceRef);
+  if (!user) return;   // 🔥 IMPORTANT
 
-      // If device already exists → DO NOT override mode
-      if (snap.exists()) {
-        await setDoc(
-          deviceRef,
-          {
-            lastHeartbeat: serverTimestamp(),
-          },
-          { merge: true }
-        );
+  const deviceId = getDeviceId();
+  const deviceRef = doc(db, "devices", deviceId);
 
-        console.log("🔁 Device exists, not overriding mode");
-        return;
-      }
+  const registerDevice = async () => {
+    const snap = await getDoc(deviceRef);
 
-      // Only create if first time
-      const info = await getDeviceInfo();
-      const systemName = buildSystemName(info);
+    // If device exists → just refresh heartbeat
+    if (snap.exists()) {
 
-      await setDoc(deviceRef, {
-        deviceId,
-        userId: user.uid,
-        role: "admin",
-        //mode: "standby",
-        mode: "primary",   // 🔥 auto primary
-        systemName,
-        nickName: "",
-        createdAt: serverTimestamp(),
-        lastHeartbeat: serverTimestamp(),
-      });
+      await setDoc(
+        deviceRef,
+        {
+          lastHeartbeat: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
-      console.log("✅ New device registered");
-    };
+      console.log("🔁 Device exists, keeping current mode");
+      setDeviceReady(true);
+      return;
+    }
 
-    registerDevice();
-  }, []);
+    // 🔥 If device doc missing (like after deletion)
+    const info = await getDeviceInfo();
+    const systemName = buildSystemName(info);
+
+    await setDoc(deviceRef, {
+      deviceId,
+      userId: user.uid,
+      role: "admin",
+      mode: "primary", // auto primary for now
+      systemName,
+      nickName: "",
+      createdAt: serverTimestamp(),
+      lastHeartbeat: serverTimestamp(),
+    });
+
+    console.log("✅ Device recreated as PRIMARY");
+    setDeviceReady(true); // 🔥 mark ready AFTER ensure doc exists
+  };
+
+  registerDevice();
+
+}, [user]);  // 🔥 DEPEND ON USER
 
   /* Used for current active screen restorartion even after page reload */
   useEffect(() => {
@@ -81,6 +88,10 @@ export default function App() {
 
   if (!user) {
     return <LoginScreen />;
+  }
+
+  if (!deviceReady) {
+    return <div style={{ padding: 40 }}>Initializing device...</div>;
   }
 
   /* 🧭 Navigation Controller */

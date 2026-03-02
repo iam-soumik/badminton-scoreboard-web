@@ -225,22 +225,22 @@ export default function ScoreboardScreen({ device }) {
     <div className="app-root">
 
         <ScoreboardLayout
-        game={game}
-        device={device}
-        canScore={canScore}
-        score={score}
-        undo={undoLast}
-        announceScore={announceCurrentScore}
-        pause={() => dispatch(pauseMatch())}
-        resume={() => dispatch(resumeMatch())}
-        manualSync={() =>
-            manualTwoWaySync(device?.mode, getDeviceId(), dispatch)
-        }
-        isServingPlayer={isServingPlayer}
-        setPopup={setPopup}
-        setSetPopup={setSetPopup}
-        announceMatchResult={announceMatchResult}
-        readOnly={false}
+          game={game}
+          device={device}
+          canScore={canScore}
+          score={score}
+          undo={undoLast}
+          announceScore={announceCurrentScore}
+          pause={() => dispatch(pauseMatch())}
+          resume={() => dispatch(resumeMatch())}
+          manualSync={() =>
+              manualTwoWaySync(device?.mode, getDeviceId(), dispatch)
+          }
+          isServingPlayer={isServingPlayer}
+          setPopup={setPopup}
+          setSetPopup={setSetPopup}
+          announceMatchResult={announceMatchResult}
+          readOnly={false}
         />
 
     </div>
