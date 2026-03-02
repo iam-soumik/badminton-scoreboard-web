@@ -103,6 +103,10 @@ export function createScoringEngine() {
     return team === 'teamA' ? 'teamB' : 'teamA'
   }
 
+  function setFullState(newState) {
+    state = JSON.parse(JSON.stringify(newState));
+  }
+
   function swapCourtsOnly() {
     const temp = state.courtSides.left
     state.courtSides.left = state.courtSides.right
@@ -256,5 +260,5 @@ export function createScoringEngine() {
     return JSON.parse(JSON.stringify(state))
   }
 
-  return { addPoint, undo, reset, getState, pauseMatch, resumeMatch }
+  return { addPoint, undo, reset, getState, pauseMatch, resumeMatch, setFullState }
 }

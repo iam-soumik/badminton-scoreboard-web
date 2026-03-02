@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createScoringEngine } from '../logic/scoringEngine'
 
-const engine = createScoringEngine()
+const engine = createScoringEngine();
 
 const gameSlice = createSlice({
   name: 'game',
@@ -19,7 +19,8 @@ const gameSlice = createSlice({
       engine.reset()
       return engine.getState()
     },
-    loadFullState(state, action) {
+    loadFullState: (state, action) => {
+      engine.setFullState(action.payload);  // 🔥 Sync engine
       return action.payload;
     },
     setFullState(state, action) {
