@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { addPoint, pauseMatch, resumeMatch, undo } from '../redux/gameSlice';
+import { addPoint, loadFullState, pauseMatch, resumeMatch, undo } from '../redux/gameSlice';
 import { useEffect, useState, useRef } from 'react';
 import { speak } from '../utils/speak';
 import { store } from '../redux/store';
@@ -11,7 +11,7 @@ import LeftTeamPanel from '../components/LeftTeamPanel';
 import RightTeamPanel from '../components/RightTeamPanel';
 import SetPopup from '../components/SetPopup';
 import { manualTwoWaySync } from '../utils/syncMatchManually'
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import confirmAction from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
@@ -22,6 +22,7 @@ export default function ScoreboardScreen({ device }) {
   const game = useSelector(state => state.game);
 
   const [setPopup, setSetPopup] = useState(null);
+  const [hydrated, setHydrated] = useState(false);
   const prevServerRef = useRef(game.server);
 
   const canScore =
@@ -34,6 +35,7 @@ export default function ScoreboardScreen({ device }) {
 
   /* 🔥 Primary Auto Push to Firestore (ONLY LIVE) */
   useEffect(() => {
+    if (!hydrated) return;   
     if (device?.mode !== "primary") return;
     if (game.matchStatus !== "live") return;
 
@@ -143,7 +145,27 @@ export default function ScoreboardScreen({ device }) {
     }, 80);
   }
 
-  
+  /* Auto refresh current state from firestore even after manual browser reload. */
+  useEffect(() => {
+
+    const restoreMatch = async () => {
+        const ref = doc(db, "matches", "live");
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+        const data = snap.data();
+        if (data.gameState) {
+            dispatch(loadFullState(data.gameState));
+            console.log("🔁 Restored match state");
+        }
+        }
+
+        setHydrated(true);  // 🔥 IMPORTANT
+    };
+
+    restoreMatch();
+
+  }, []);
 
   function isServingPlayer(team, player) {
     if (game.matchFinished) return false;

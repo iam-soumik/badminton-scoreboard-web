@@ -12,7 +12,9 @@ import TopBar from "./components/TopBar";
 
 export default function App() {
 
-  const [screen, setScreen] = useState("menu");
+  const [screen, setScreen] = useState(() => {
+    return localStorage.getItem("currentScreen") || "menu";
+  });
   const device = useDeviceStatus();
 
   /* ✅ 1️⃣ Device Register (Runs once) */
@@ -43,6 +45,11 @@ export default function App() {
 
     registerDevice();
   }, []);
+
+  /* Used for current active screen restorartion even after page reload */
+  useEffect(() => {
+    localStorage.setItem("currentScreen", screen);
+  }, [screen]);
 
 
   /* 🧭 Navigation Controller */
