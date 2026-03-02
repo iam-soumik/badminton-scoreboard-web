@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { buildSystemName, getDeviceId, getDeviceInfo } from "./utils/device";
 import { useDeviceStatus } from "./redux/hooks/useDeviceStatus";
 import ScoreboardScreen from "./pages/ScoreboardScreen";
@@ -23,24 +23,37 @@ export default function App() {
     const deviceRef = doc(db, "devices", deviceId);
 
     const registerDevice = async () => {
+      const snap = await getDoc(deviceRef);
+
+      // If device already exists → DO NOT override mode
+      if (snap.exists()) {
+        await setDoc(
+          deviceRef,
+          {
+            lastHeartbeat: serverTimestamp(),
+          },
+          { merge: true }
+        );
+
+        console.log("🔁 Device exists, not overriding mode");
+        return;
+      }
+
+      // Only create if first time
       const info = await getDeviceInfo();
       const systemName = buildSystemName(info);
 
-      await setDoc(
-        deviceRef,
-        {
-          deviceId,
-          role: "admin",
-          mode: "standby",
-          systemName,
-          nickName: "",
-          createdAt: serverTimestamp(),
-          lastHeartbeat: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      await setDoc(deviceRef, {
+        deviceId,
+        role: "admin",
+        mode: "standby",
+        systemName,
+        nickName: "",
+        createdAt: serverTimestamp(),
+        lastHeartbeat: serverTimestamp(),
+      });
 
-      console.log("✅ Device registered:", deviceId);
+      console.log("✅ New device registered");
     };
 
     registerDevice();
