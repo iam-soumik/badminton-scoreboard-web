@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "./firebase";
+import { db } from "./firebase/firebase";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { buildSystemName, getDeviceId, getDeviceInfo } from "./utils/device";
 import { useDeviceStatus } from "./redux/hooks/useDeviceStatus";
@@ -9,13 +9,26 @@ import MainMenu from "./pages/MainMenu";
 import AdminPanel from "./pages/AdminPanel";
 import BackButton from "./components/BackButton";
 import TopBar from "./components/TopBar";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase/auth";
+import LoginScreen from "./pages/LoginScreen";
 
 export default function App() {
 
+  const [user, setUser] = useState(null);
   const [screen, setScreen] = useState(() => {
     return localStorage.getItem("currentScreen") || "menu";
   });
   const device = useDeviceStatus();
+
+  /* ✅ Add auth listener */
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+
+    return () => unsub();
+  }, []);
 
   /* ✅ 1️⃣ Device Register (Runs once) */
   useEffect(() => {
@@ -45,8 +58,10 @@ export default function App() {
 
       await setDoc(deviceRef, {
         deviceId,
+        userId: user.uid,
         role: "admin",
-        mode: "standby",
+        //mode: "standby",
+        mode: "primary",   // 🔥 auto primary
         systemName,
         nickName: "",
         createdAt: serverTimestamp(),
@@ -64,6 +79,9 @@ export default function App() {
     localStorage.setItem("currentScreen", screen);
   }, [screen]);
 
+  if (!user) {
+    return <LoginScreen />;
+  }
 
   /* 🧭 Navigation Controller */
   switch (screen) {

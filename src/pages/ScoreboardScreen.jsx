@@ -12,7 +12,7 @@ import RightTeamPanel from '../components/RightTeamPanel';
 import SetPopup from '../components/SetPopup';
 import { manualTwoWaySync } from '../utils/syncMatchManually'
 import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebase/firebase";
 import confirmAction from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
 
