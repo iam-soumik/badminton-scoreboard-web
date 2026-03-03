@@ -18,6 +18,7 @@ export default function ScoreboardLayout({
   setPopup,
   setSetPopup,
   announceMatchResult,
+  onSwap,   
   readOnly = false,
 }) {
 
@@ -35,6 +36,7 @@ export default function ScoreboardLayout({
         score={readOnly ? () => {} : score}
         canScore={!readOnly && canScore}
         isServingPlayer={isServingPlayer}
+        onSwap={onSwap}
       />
 
       <CenterPanel
@@ -54,6 +56,7 @@ export default function ScoreboardLayout({
         score={readOnly ? () => {} : score}
         canScore={!readOnly && canScore}
         isServingPlayer={isServingPlayer}
+        onSwap={onSwap}
       />
 
       {/* Popup only for scoring screen */}

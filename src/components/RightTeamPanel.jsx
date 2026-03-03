@@ -2,7 +2,8 @@ export default function RightTeamPanel({
   game,
   score,
   canScore,
-  isServingPlayer
+  isServingPlayer,
+  onSwap           
 }) {
 
   const rightTeam = game.courtSides.right;
@@ -30,7 +31,7 @@ export default function RightTeamPanel({
         {game.matchStatus === "idle" && (
           <button
             className="swap-btn"
-            onClick={() => dispatch(swapPlayers(rightTeam))}
+            onClick={() => onSwap(rightTeam)}
           >
             🔄 Swap
           </button>

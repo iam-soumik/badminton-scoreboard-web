@@ -1,10 +1,10 @@
-import { swapPlayers } from "../redux/gameSlice";
 
 export default function LeftTeamPanel({
   game,
   score,
   canScore,
-  isServingPlayer
+  isServingPlayer,
+  onSwap           
 }) {
 
   // 🔁 Resolve logical team from visual left side
@@ -33,7 +33,7 @@ export default function LeftTeamPanel({
         {game.matchStatus === "idle" && (
           <button
             className="swap-btn"
-            onClick={() => dispatch(swapPlayers(leftTeam))}
+            onClick={() => onSwap(leftTeam)}
           >
             🔄 Swap
           </button>

@@ -303,16 +303,16 @@ export function createScoringEngine() {
 
   // This swap function is for prematch screen.
   function swapPlayers(team) {
-    const p1 = state.players[team][0];
-    const p2 = state.players[team][1];
+    const player1 = state.players[team][0];
+    const player2 = state.players[team][1];
 
-    state.players[team] = [
-      { ...p2 },
-      { ...p1 }
-    ];
+    const tempCourt = player1.court;
+    player1.court = player2.court;
+    player2.court = tempCourt;
 
     state.revision++;
   }
+  
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
             setFullState, loadPrematchData, swapPlayers 

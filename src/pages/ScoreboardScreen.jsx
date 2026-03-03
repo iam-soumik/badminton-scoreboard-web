@@ -42,7 +42,7 @@ export default function ScoreboardScreen({ device }) {
 
     pushMatchState(game, getDeviceId());
 
-  }, [game, device?.mode, game.matchStatus]);
+  }, [game.revision, device?.mode, game.matchStatus]);
 
   /* ✅ 💓 HEARTBEAT (Only Active + Live Match) */
   useEffect(() => {
@@ -246,6 +246,7 @@ export default function ScoreboardScreen({ device }) {
           setSetPopup={setSetPopup}
           announceMatchResult={announceMatchResult}
           readOnly={false}
+          onSwap={handleSwap}
         />
 
     </div>
