@@ -147,7 +147,7 @@ html, body, #root {
   background: #388150;
   padding: 12px;
   border-radius: 8px;
-  margin-bottom: 12px;
+  
 }
 
 .prematch-panel select {
@@ -184,6 +184,21 @@ html, body, #root {
 
 .swap-btn:hover {
   background: #333;
+}
+
+.swapTeams-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: #e23838;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.swapTeams-btn:hover {
+  background: #720606;
 }
 
 .utility-btn {

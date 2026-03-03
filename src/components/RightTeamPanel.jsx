@@ -28,7 +28,9 @@ export default function RightTeamPanel({
         )}
 
         {/* 🔄 Swap Button (Only One) */}
-        {game.matchStatus === "idle" && (
+        {game.score.teamA === 0 &&
+          game.score.teamB === 0 &&
+          !game.matchFinished && (
           <button
             className="swap-btn"
             onClick={() => onSwap(rightTeam)}

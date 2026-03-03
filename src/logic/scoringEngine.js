@@ -312,9 +312,34 @@ export function createScoringEngine() {
 
     state.revision++;
   }
-  
+
+  // This swap function is for prematch screen.
+  function swapTeams() {
+    // Swap players
+    const tempPlayers = state.players.teamA;
+    state.players.teamA = state.players.teamB;
+    state.players.teamB = tempPlayers;
+
+    // Swap team names
+    const tempName = state.teamInfo.teamA;
+    state.teamInfo.teamA = state.teamInfo.teamB;
+    state.teamInfo.teamB = tempName;
+
+    // Swap games won
+    const tempGames = state.gamesWon.teamA;
+    state.gamesWon.teamA = state.gamesWon.teamB;
+    state.gamesWon.teamB = tempGames;
+
+    // Swap score (prematch usually 0-0)
+    const tempScore = state.score.teamA;
+    state.score.teamA = state.score.teamB;
+    state.score.teamB = tempScore;
+
+    state.revision++;
+  }
+
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
-            setFullState, loadPrematchData, swapPlayers 
+            setFullState, loadPrematchData, swapPlayers, swapTeams    
   }
 }

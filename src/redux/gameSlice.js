@@ -56,13 +56,18 @@ const gameSlice = createSlice({
       return engine.getState();
     },
 
+    swapTeams(state) {
+      engine.swapTeams();
+      return engine.getState();
+    },
+
   },
 })
 
 export const { addPoint, undo, reset, 
                loadFullState, setFullState, 
                startMatch, pauseMatch, resumeMatch, 
-               loadPrematch, swapPlayers 
+               loadPrematch, swapPlayers, swapTeams
 } = gameSlice.actions;
 
 export default gameSlice.reducer;

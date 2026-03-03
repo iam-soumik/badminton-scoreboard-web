@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { useDispatch } from "react-redux";
-import { loadPrematch, startMatch } from "../redux/gameSlice";
+import { loadPrematch, startMatch, swapTeams } from "../redux/gameSlice";
 
 export default function PrematchPanel({ game }) {
 
@@ -55,32 +55,42 @@ export default function PrematchPanel({ game }) {
   };
 
   return (
-    <div className="prematch-panel">
+    <>
+      <div className="prematch-panel">
+        <h2 className="prematch-title">Prematch Setup</h2>
+        {game.matchStatus === "idle" && (
+          <>
+            <label>Select Match</label>
+            <select
+              value={game.prematch.matchId || ""}
+              onChange={(e) => handleSelect(e.target.value)}
+            >
+              <option value="">-- Select Match --</option>
+              {matches.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+        {game.prematch.matchId && (
+          <button
+              style={{ marginTop: "12px" }}
+              onClick={() => dispatch(startMatch())}
+          >
+              ▶ Start Match
+          </button>
+        )}
 
-      <h2 className="prematch-title">Prematch Setup</h2>
-
-      <label>Select Match</label>
-      <select
-        value={game.prematch.matchId || ""}
-        onChange={(e) => handleSelect(e.target.value)}
-      >
-        <option value="">-- Select Match --</option>
-        {matches.map(m => (
-          <option key={m.id} value={m.id}>
-            {m.label}
-          </option>
-        ))}
-      </select>
-
-      {game.prematch.matchId && (
-        <button
-            style={{ marginTop: "12px" }}
-            onClick={() => dispatch(startMatch())}
-        >
-            ▶ Start Match
+      </div>
+      {game.matchStatus === "idle" && (
+        <button 
+            className="swapTeams-btn"
+            onClick={() => dispatch(swapTeams())}>
+          🔁 Swap Teams
         </button>
       )}
-
-    </div>
+    </>
   );
 }
