@@ -70,6 +70,7 @@ export function createScoringEngine() {
 
       history: [],
       matchStatus: "idle",   // idle | live | paused | finished
+      tournamentMatchNumber: 1,
       revision: 0,
     }
   }
@@ -344,16 +345,13 @@ export function createScoringEngine() {
   }
 
   function startNewMatch() {
-    state.score = { teamA: 0, teamB: 0 };
-    state.gamesWon = { teamA: 0, teamB: 0 };
-    state.setResults = [];
-    state.lastSetResult = null;
-    state.gameNumber = 1;
-    state.started = false;
-    state.thirdGameSwapDone = false;
-    state.matchFinished = false;
-    state.matchStatus = "idle";
-    state.revision++;
+    const nextMatchNumber = state.tournamentMatchNumber + 1;
+    const fresh = initialState();
+
+    fresh.tournamentMatchNumber = nextMatchNumber;
+    fresh.revision = state.revision + 1;
+
+    state = fresh;
   }
 
   return { addPoint, undo, reset, getState, 
