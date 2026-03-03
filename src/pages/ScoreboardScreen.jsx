@@ -11,7 +11,7 @@ import LeftTeamPanel from '../components/LeftTeamPanel';
 import RightTeamPanel from '../components/RightTeamPanel';
 import SetPopup from '../components/SetPopup';
 import { manualTwoWaySync } from '../utils/syncMatchManually'
-import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import confirmAction from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
@@ -169,6 +169,37 @@ export default function ScoreboardScreen({ device }) {
     restoreMatch();
 
   }, []);
+
+  /* This will push match result to Firestore */
+  useEffect(() => {
+    if (!game.matchFinished) return;
+
+    const saveMatchResult = async () => {
+      const matchRef = doc(
+        db,
+        "matchResults",
+        `match_${game.tournamentMatchNumber}`
+      );
+
+      const winner =
+        game.gamesWon.teamA > game.gamesWon.teamB ? "teamA" : "teamB";
+
+      await setDoc(matchRef, {
+        matchNumber: game.tournamentMatchNumber,
+        matchLabel: game.prematch.matchLabel,
+        teamAName: game.teamInfo.teamA,
+        teamBName: game.teamInfo.teamB,
+        gamesWon: game.gamesWon,
+        setResults: game.setResults,
+        winner: game.teamInfo[winner],
+        createdAt: serverTimestamp(),
+      });
+
+      console.log("✅ Match result saved");
+    };
+
+    saveMatchResult();
+  }, [game.matchFinished]);
 
   function isServingPlayer(team, player) {
     if (game.matchFinished) return false;
