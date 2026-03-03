@@ -59,7 +59,7 @@ export default function CenterPanel({
         ))}
 
         <div className="cell team-name">
-          {game.teamInfo.teamA}
+          {game.players.teamA.map(p => p.name).join(" / ")}
         </div>
         {setGrid.map((s, i) => (
           <div key={i} className={`cell score ${s.status}`}>
@@ -68,7 +68,7 @@ export default function CenterPanel({
         ))}
 
         <div className="cell team-name">
-          {game.teamInfo.teamB}
+          {game.players.teamB.map(p => p.name).join(" / ")}
         </div>
         {setGrid.map((s, i) => (
           <div key={i} className={`cell score ${s.status}`}>

@@ -90,7 +90,7 @@ export default function ScoreboardScreen({ device }) {
     const loserScore = r.winner === 'teamA' ? r.teamB : r.teamA
 
     speakIfPrimary(
-      `Set won by ${game.teamInfo[r.winner]}.  ${winnerScore} ${loserScore}`
+      `Set won by ${getTeamDisplayName(r.winner)}  ${winnerScore} ${loserScore}`
     )
 
   }, [game.lastSetResult])
@@ -217,12 +217,21 @@ export default function ScoreboardScreen({ device }) {
   }
 
   function announceCurrentScore() {
-    if (!canScore) return;          // 🔒
-    if (game.matchFinished) return
+    if (!canScore) return;
+    if (game.matchFinished) return;
 
-    const { teamA, teamB } = game.score
+    const serverTeam = game.server.team;
+    const opponent = serverTeam === "teamA" ? "teamB" : "teamA";
 
-    speakIfPrimary(`Current score. Team A ${teamA}. Team B ${teamB}.`)
+    const serverScore = game.score[serverTeam];
+    const opponentScore = game.score[opponent];
+
+    const serverName = getTeamDisplayName(serverTeam);
+    const opponentName = getTeamDisplayName(opponent);
+
+    speakIfPrimary(
+      `Current score. ${serverName} ${serverScore}. ${opponentName} ${opponentScore}.`
+    );
   }
 
   function announceMatchResult() {
@@ -231,8 +240,8 @@ export default function ScoreboardScreen({ device }) {
     const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
     const loser  = winner === 'teamA' ? 'teamB' : 'teamA'
 
-    const winnerName = winner === 'teamA' ? 'Team A' : 'Team B'
-    const loserName = loser === 'teamA' ? 'Team A' : 'Team B'
+    const winnerName = getTeamDisplayName(winner);
+    const loserName = getTeamDisplayName(loser);
 
     const winnerScore = game.gamesWon[winner]
     const loserScore = game.gamesWon[loser]
@@ -240,6 +249,11 @@ export default function ScoreboardScreen({ device }) {
     speakIfPrimary(
       `${winnerName} wins the match by ${winnerScore} to ${loserScore}`
     )
+  }
+
+  function getTeamDisplayName(teamKey) {
+    const players = game.players[teamKey];
+    return players.map(p => p.name).join(" and ");
   }
 
   function undoFromPopup() {
