@@ -15,6 +15,7 @@ import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import confirmAction from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
+import { clearLastSetResult } from '../redux/gameSlice';
 
 export default function ScoreboardScreen({ device }) {
 
@@ -227,6 +228,11 @@ export default function ScoreboardScreen({ device }) {
     dispatch(swapPlayers(team));
   }
 
+  function handleSetPopupClose() {
+    setSetPopup(null);
+    dispatch(clearLastSetResult());
+  }
+
   return (
     <div className="app-root">
 
@@ -248,6 +254,7 @@ export default function ScoreboardScreen({ device }) {
           announceMatchResult={announceMatchResult}
           readOnly={false}
           onSwap={handleSwap}
+          onSetPopupClose={handleSetPopupClose}
         />
 
     </div>

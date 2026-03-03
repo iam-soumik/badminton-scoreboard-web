@@ -3,6 +3,7 @@ import RightTeamPanel from "./RightTeamPanel";
 import CenterPanel from "./CenterPanel";
 import SetPopup from "./SetPopup";
 import PrematchPanel from "./PrematchPanel";
+import { clearLastSetResult } from "../redux/gameSlice";
 
 export default function ScoreboardLayout({
   game,
@@ -19,6 +20,7 @@ export default function ScoreboardLayout({
   setSetPopup,
   announceMatchResult,
   onSwap,   
+  onSetPopupClose,
   readOnly = false,
 }) {
 
@@ -68,7 +70,7 @@ export default function ScoreboardLayout({
           deviceMode={device?.mode}
           onUndo={undo}
           onAnnounce={announceMatchResult}
-          onClose={() => setSetPopup(null)}
+          onClose={onSetPopupClose}
         />
       )}
 

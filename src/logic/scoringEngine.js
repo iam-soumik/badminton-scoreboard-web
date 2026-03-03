@@ -238,6 +238,10 @@ export function createScoringEngine() {
     }
   }
 
+  function clearLastSetResult() {
+    state.lastSetResult = null;
+    state.revision++;
+  }
 
   function undo() {
     if (!state.history.length) return
@@ -341,6 +345,7 @@ export function createScoringEngine() {
 
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
-            setFullState, loadPrematchData, swapPlayers, swapTeams    
+            setFullState, loadPrematchData, swapPlayers, swapTeams,
+            clearLastSetResult    
   }
 }
