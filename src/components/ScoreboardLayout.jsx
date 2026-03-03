@@ -21,6 +21,7 @@ export default function ScoreboardLayout({
   announceMatchResult,
   onSwap,   
   onSetPopupClose,
+  onStartNewMatch,
   readOnly = false,
 }) {
 
@@ -51,6 +52,7 @@ export default function ScoreboardLayout({
         resume={resume}
         deviceMode={device?.mode}
         readOnly={readOnly}
+        onStartNewMatch={onStartNewMatch}
       />
 
       <RightTeamPanel

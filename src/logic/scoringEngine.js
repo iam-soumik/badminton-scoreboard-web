@@ -343,9 +343,22 @@ export function createScoringEngine() {
     state.revision++;
   }
 
+  function startNewMatch() {
+    state.score = { teamA: 0, teamB: 0 };
+    state.gamesWon = { teamA: 0, teamB: 0 };
+    state.setResults = [];
+    state.lastSetResult = null;
+    state.gameNumber = 1;
+    state.started = false;
+    state.thirdGameSwapDone = false;
+    state.matchFinished = false;
+    state.matchStatus = "idle";
+    state.revision++;
+  }
+
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
             setFullState, loadPrematchData, swapPlayers, swapTeams,
-            clearLastSetResult    
+            clearLastSetResult, startNewMatch    
   }
 }

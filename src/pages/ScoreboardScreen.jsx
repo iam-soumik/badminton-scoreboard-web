@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { addPoint, loadFullState, pauseMatch, resumeMatch, swapPlayers, undo } from '../redux/gameSlice';
+import { addPoint, loadFullState, pauseMatch, resumeMatch, startNewMatch, swapPlayers, undo } from '../redux/gameSlice';
 import { useEffect, useState, useRef } from 'react';
 import { speak } from '../utils/speak';
 import { store } from '../redux/store';
@@ -233,6 +233,10 @@ export default function ScoreboardScreen({ device }) {
     dispatch(clearLastSetResult());
   }
 
+  function handleStartNewMatch() {
+    dispatch(startNewMatch());
+  }
+
   return (
     <div className="app-root">
 
@@ -255,6 +259,7 @@ export default function ScoreboardScreen({ device }) {
           readOnly={false}
           onSwap={handleSwap}
           onSetPopupClose={handleSetPopupClose}
+          onStartNewMatch={handleStartNewMatch}
         />
 
     </div>

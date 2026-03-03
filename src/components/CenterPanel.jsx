@@ -1,3 +1,4 @@
+import { startNewMatch } from "../redux/gameSlice";
 import PrematchPanel from "./PrematchPanel";
 
 export default function CenterPanel({
@@ -9,6 +10,7 @@ export default function CenterPanel({
   pause,
   resume,
   deviceMode,
+  onStartNewMatch,
   readOnly = false
 }) {
 
@@ -123,6 +125,15 @@ export default function CenterPanel({
             >
                 ▶ Resume
             </button>
+            )}
+
+            {game.matchFinished && (
+              <button
+                className="utility-btn"
+                onClick={onStartNewMatch}
+              >
+                🆕 New Match
+              </button>
             )}
 
         </div>

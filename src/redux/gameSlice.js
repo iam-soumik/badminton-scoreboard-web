@@ -64,6 +64,11 @@ const gameSlice = createSlice({
     clearLastSetResult(state) {
       engine.clearLastSetResult();
       return engine.getState();
+    },
+
+    startNewMatch(state) {
+      engine.startNewMatch();
+      return engine.getState();
     }
   },
 })
@@ -72,7 +77,7 @@ export const { addPoint, undo, reset,
                loadFullState, setFullState, 
                startMatch, pauseMatch, resumeMatch, 
                loadPrematch, swapPlayers, swapTeams,
-               clearLastSetResult
+               clearLastSetResult, startNewMatch
 } = gameSlice.actions;
 
 export default gameSlice.reducer;
