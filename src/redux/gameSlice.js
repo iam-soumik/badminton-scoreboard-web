@@ -69,7 +69,21 @@ const gameSlice = createSlice({
     startNewMatch(state) {
       engine.startNewMatch();
       return engine.getState();
+    },
+
+    setFirstServerTeam(state, action) {
+      const team = action.payload;
+      state.matchConfig.firstServerTeam = team;
+
+      // Find RIGHT court player automatically
+      const rightIndex = state.players[team].findIndex(
+        p => p.court === "RIGHT"
+      );
+      state.server.team = team;
+      state.server.playerIndex = rightIndex === -1 ? 0 : rightIndex;
+      state.revision++;
     }
+
   },
 })
 
@@ -77,7 +91,8 @@ export const { addPoint, undo, reset,
                loadFullState, setFullState, 
                startMatch, pauseMatch, resumeMatch, 
                loadPrematch, swapPlayers, swapTeams,
-               clearLastSetResult, startNewMatch
+               clearLastSetResult, startNewMatch,
+               setFirstServerTeam
 } = gameSlice.actions;
 
 export default gameSlice.reducer;

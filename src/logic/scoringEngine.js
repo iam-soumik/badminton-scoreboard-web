@@ -60,7 +60,6 @@ export function createScoringEngine() {
 
       matchConfig: {
         firstServerTeam: 'teamA',
-        firstServerPlayerIndex: 0,
       },
 
       prematch: {
@@ -169,9 +168,13 @@ export function createScoringEngine() {
     const team = state.courtSides[courtSide]
 
     if (!state.started) {
-      state.server.team = state.matchConfig.firstServerTeam
-      state.server.playerIndex = state.matchConfig.firstServerPlayerIndex
-      state.started = true
+      const servingTeam = state.matchConfig.firstServerTeam;
+      const rightIndex = state.players[servingTeam].findIndex(
+        p => p.court === "RIGHT"
+      );
+      state.server.team = servingTeam;
+      state.server.playerIndex = rightIndex === -1 ? 0 : rightIndex;
+      state.started = true;
     }
 
     // clear popup on new rally
@@ -280,6 +283,7 @@ export function createScoringEngine() {
     state.teamInfo.teamA = teamA.name;
     state.teamInfo.teamB = teamB.name;
 
+    // Reset players with default RIGHT/LEFT
     state.players.teamA = teamA.players.map((p, i) => ({
       name: p,
       court: i === 0 ? "RIGHT" : "LEFT"
@@ -290,12 +294,29 @@ export function createScoringEngine() {
       court: i === 0 ? "RIGHT" : "LEFT"
     }));
 
+    // Default first server team
     state.matchConfig.firstServerTeam = "teamA";
-    state.matchConfig.firstServerPlayerIndex = 0;
+
+    // Immediately align server with RIGHT court player
+    const rightIndex = state.players.teamA.findIndex(
+      p => p.court === "RIGHT"
+    );
+
+    state.server.team = "teamA";
+    state.server.playerIndex = rightIndex === -1 ? 0 : rightIndex;
 
     state.started = false;
     state.matchFinished = false;
     state.matchStatus = "idle";
+
+    state.score.teamA = 0;
+    state.score.teamB = 0;
+    state.gamesWon.teamA = 0;
+    state.gamesWon.teamB = 0;
+    state.setResults = [];
+    state.lastSetResult = null;
+    state.gameNumber = 1;
+    state.thirdGameSwapDone = false;
 
     state.revision = (state.revision || 0) + 1;
   }
@@ -309,12 +330,25 @@ export function createScoringEngine() {
 
   // This swap function is for prematch screen.
   function swapPlayers(team) {
+
     const player1 = state.players[team][0];
     const player2 = state.players[team][1];
 
+    // swap court only
     const tempCourt = player1.court;
     player1.court = player2.court;
     player2.court = tempCourt;
+
+    // If swapped team is currently serving team,
+    // we must update server.playerIndex
+    if (state.server.team === team) {
+
+      const rightIndex = state.players[team].findIndex(
+        p => p.court === "RIGHT"
+      );
+
+      state.server.playerIndex = rightIndex === -1 ? 0 : rightIndex;
+    }
 
     state.revision++;
   }

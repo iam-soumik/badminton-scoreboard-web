@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { useDispatch } from "react-redux";
-import { loadPrematch, startMatch, swapTeams } from "../redux/gameSlice";
+import { loadPrematch, setFirstServerTeam, startMatch, swapTeams } from "../redux/gameSlice";
 
 export default function PrematchPanel({ game }) {
 
@@ -72,6 +72,26 @@ export default function PrematchPanel({ game }) {
                 </option>
               ))}
             </select>
+
+            <div className="service-selection">
+              <h4>First Serve</h4>
+
+              <label>Serving Team</label>
+              <select
+                value={game.matchConfig.firstServerTeam}
+                onChange={(e) =>
+                  dispatch(setFirstServerTeam(e.target.value))
+                }
+              >
+                <option value="teamA">
+                  {game.players.teamA.map(p => p.name).join(" / ")}
+                </option>
+                <option value="teamB">
+                  {game.players.teamB.map(p => p.name).join(" / ")}
+                </option>
+              </select>
+            </div>
+  
           </>
         )}
         {game.prematch.matchId && (
