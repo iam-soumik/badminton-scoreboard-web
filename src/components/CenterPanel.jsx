@@ -42,9 +42,7 @@ export default function CenterPanel({
     <div className="center-panel">
 
       {/* 🔧 PREMATCH SECTION */}
-      { game.score.teamA === 0 &&
-        game.score.teamB === 0 &&
-        !game.matchFinished && (
+      { game.matchStatus === "idle" && (
         <PrematchPanel game={game} />
       )}
 
