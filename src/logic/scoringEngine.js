@@ -150,12 +150,13 @@ export function createScoringEngine() {
   /* ---------------- CORE LOGIC ---------------- */
 
   function addPoint(courtSide) {
-    if (state.matchFinished) return
+    if (state.matchFinished) return;
+    if (state.matchStatus !== "live") return;   // 🔥 CRITICAL
 
     // ✅ Auto-start match on first rally
-    if (state.matchStatus === "idle") {
+    /*if (state.matchStatus === "idle") {
       state.matchStatus = "live";
-    }
+    }*/
 
     // ✅ If paused, resume automatically when scoring happens
     if (state.matchStatus === "paused") {

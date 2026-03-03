@@ -97,6 +97,7 @@ export default function ScoreboardScreen({ device }) {
   function score(courtSide) {
     if (!canScore) return;
     if (game.matchFinished) return;
+    if (game.matchStatus !== "live") return;   // 🔥 block scoring
 
     const prevServer = prevServerRef.current;
 

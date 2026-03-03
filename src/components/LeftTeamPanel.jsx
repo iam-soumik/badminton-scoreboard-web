@@ -67,7 +67,11 @@ export default function LeftTeamPanel({
         <button
           className="score-btn"
           onClick={() => score("left")}
-          disabled={game.matchFinished || !canScore}
+          disabled={
+            game.matchFinished ||
+            !canScore ||
+            game.matchStatus !== "live"
+          }
         >
           +1
         </button>

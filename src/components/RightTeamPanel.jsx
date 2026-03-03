@@ -64,7 +64,11 @@ export default function RightTeamPanel({
         <button
           className="score-btn"
           onClick={() => score("right")}
-          disabled={game.matchFinished || !canScore}
+          disabled={
+            game.matchFinished ||
+            !canScore ||
+            game.matchStatus !== "live"
+          }
         >
           +1
         </button>
