@@ -388,9 +388,19 @@ export function createScoringEngine() {
     state = fresh;
   }
 
+  function setFirstServerTeam(team) {
+    state.matchConfig.firstServerTeam = team;
+    const rightIndex = state.players[team].findIndex(
+      p => p.court === "RIGHT"
+    );
+    state.server.team = team;
+    state.server.playerIndex = rightIndex === -1 ? 0 : rightIndex;
+    state.revision++;
+  }
+
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
             setFullState, loadPrematchData, swapPlayers, swapTeams,
-            clearLastSetResult, startNewMatch    
+            clearLastSetResult, startNewMatch , setFirstServerTeam   
   }
 }
