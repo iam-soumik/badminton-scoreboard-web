@@ -6,7 +6,8 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  getDoc
 } from "firebase/firestore";
 
 export default function MatchCreatorScreen() {
@@ -18,7 +19,7 @@ export default function MatchCreatorScreen() {
   const [matchLabel,setMatchLabel] = useState("");
   const [teamA,setTeamA] = useState("");
   const [teamB,setTeamB] = useState("");
-  const [editingMatchId,setEditingMatchId] = useState(null)
+  const [editingMatchId,setEditingMatchId] = useState(null);
 
   const exists = matches.some( m =>
         m.round === round &&
@@ -27,24 +28,58 @@ export default function MatchCreatorScreen() {
     );
 
   useEffect(()=>{
-    loadTeams();
+    //loadTeams();
     loadMatches();
   },[]);
 
-  function startEdit(match){
+  useEffect(()=>{
+    loadTeamsForRound(round)
+  },[round]);
 
+  function startEdit(match){
     setEditingMatchId(match.id)
     setRound(match.round)
     setMatchLabel(match.label)
     setTeamA(match.teamAId)
     setTeamB(match.teamBId)
-
   }
 
-  async function loadTeams(){
-    const snap = await getDocs(collection(db,"teams"));
-    const list = snap.docs.map(d=>({ id:d.id,...d.data() }));
-    setTeams(list);
+  async function loadTeamsForRound(round){
+
+    const configSnap = await getDoc(doc(db,"tournamentConfig","current"))
+    const config = configSnap.data()
+
+    const firstRound = config.firstRound;
+
+    // FIRST ROUND
+    if(round === firstRound){
+        const snap = await getDocs(collection(db,"teams"))
+        const list = snap.docs.map(d=>({
+        id:d.id,
+        ...d.data()
+        }))
+        setTeams(list)
+        return
+    }
+
+    // NEXT ROUNDS → winners of previous round
+
+    const ROUND_ORDER = ["SUPER32","PREQF","QF","SF","F"]
+
+    const index = ROUND_ORDER.indexOf(round)
+    const prevRound = ROUND_ORDER[index-1]
+
+    const snap = await getDocs(collection(db,"matchResults"))
+
+    const winners = snap.docs
+        .map(d=>d.data())
+        .filter(m=>m.round === prevRound)
+        .map(m=>({
+        id:m.winner,
+        teamName:m.winner
+        }))
+
+    setTeams(winners)
   }
 
   async function loadMatches(){
@@ -55,29 +90,29 @@ export default function MatchCreatorScreen() {
 
 
   async function getWinnerTeams(round){
-
         const snap = await getDocs(collection(db,"matchResults"))
-
         const winners = snap.docs
             .map(d=>d.data())
             .filter(m=>m.round === round)
             .map(m=>m.winner)
-
         return winners
   }
 
-  async function createMatch(){
+  function getPreviousRound(round){
+    const index = ROUND_ORDER.indexOf(round)
+    if(index <= 0) return null
+    return ROUND_ORDER[index-1]
+  }
 
+  async function createMatch(){
     if(exists){
         alert("Match label already exists for this round")
         return
     }
-
     if(teamA === teamB){
         alert("Same team cannot play against itself")
         return
     }
-
     if(!matchLabel || !teamA || !teamB){
       alert("Fill all fields");
       return;
@@ -100,6 +135,7 @@ export default function MatchCreatorScreen() {
         return
     }
 
+    
     await addDoc(collection(db,"tournamentMatches"),{
       label: matchLabel.toUpperCase(),
       round,
