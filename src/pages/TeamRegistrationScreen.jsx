@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
-import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, serverTimestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 export default function TeamRegistrationScreen() {
 
@@ -11,32 +11,86 @@ export default function TeamRegistrationScreen() {
   const [address, setAddress] = useState("");
 
   const [teams, setTeams] = useState([]);
+  const [editingId,setEditingId] = useState(null);
 
-  async function saveTeam(){
+  function editTeam(t){
+    setTeamName(t.teamName);
+    setPlayer1(t.players?.[0] || "");
+    setPlayer2(t.players?.[1] || "");
+    setAgeGroup(t.ageGroup || "Open");
+    setAddress(t.address || "");
 
-    if(!player1 || !player2){
+    setEditingId(t.id);
+  }
+
+  async function saveTeam() {
+
+    if (!player1 || !player2) {
         alert("Player names required");
         return;
     }
 
-    let finalTeamName = teamName;
+    const p1 = player1.trim().toUpperCase();
+    const p2 = player2.trim().toUpperCase();
 
-    if(!teamName){
-        finalTeamName = `Team ${player1} & ${player2}`;
+    // check duplicate
+    const duplicate = teams.find(t => {
+
+        // ignore the same team when editing
+        if (editingId && t.id === editingId) return false;
+
+        const tp1 = t.players?.[0]?.toUpperCase();
+        const tp2 = t.players?.[1]?.toUpperCase();
+
+        return (
+            (tp1 === p1 && tp2 === p2) ||
+            (tp1 === p2 && tp2 === p1)
+        );
+
+    });
+
+    if (duplicate) {
+        alert("This team already exists.");
+        return;
     }
 
-    await addDoc(collection(db,"teams"),{
-        teamName: finalTeamName,
-        players:[player1,player2],
-        ageGroup,
-        address,
-        createdAt: serverTimestamp()
-    });
+    let finalTeamName = teamName?.trim();
+
+    if (!finalTeamName) {
+        finalTeamName = `Team ${player1.trim()} & ${player2.trim()}`;
+    }
+
+    if(editingId){
+        await updateDoc(doc(db,"teams",editingId),{
+            teamName: finalTeamName,
+            players:[player1,player2],
+            ageGroup,
+            address
+        });
+        setEditingId(null);
+    }else{
+        await addDoc(collection(db,"teams"),{
+            teamName: finalTeamName,
+            players:[player1,player2],
+            ageGroup,
+            address,
+            createdAt: serverTimestamp()
+        });
+    }
 
     setTeamName("");
     setPlayer1("");
     setPlayer2("");
     setAddress("");
+
+    loadTeams();
+  }
+
+  async function deleteTeam(id) {
+
+    if(!window.confirm("Delete this team?")) return;
+
+    await deleteDoc(doc(db,"teams",id));
 
     loadTeams();
   }
@@ -109,6 +163,10 @@ export default function TeamRegistrationScreen() {
                             </div>
                             <div className="players">
                                 {t.players?.join(" / ").toUpperCase()}
+                            </div>
+                            <div className="team-actions">
+                                <button className="edit-btn" onClick={()=>editTeam(t)} > Edit </button>
+                                <button className="delete-btn" onClick={()=>deleteTeam(t.id)} > Delete </button>
                             </div>
                         </div>
                     ))}
