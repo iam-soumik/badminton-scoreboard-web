@@ -20,6 +20,12 @@ export default function MatchCreatorScreen() {
   const [teamB,setTeamB] = useState("");
   const [editingMatchId,setEditingMatchId] = useState(null)
 
+  const exists = matches.some( m =>
+        m.round === round &&
+        m.label.toUpperCase() === matchLabel.toUpperCase() &&
+        m.id !== editingMatchId
+    );
+
   useEffect(()=>{
     loadTeams();
     loadMatches();
@@ -47,11 +53,51 @@ export default function MatchCreatorScreen() {
     setMatches(list);
   }
 
+
+  async function getWinnerTeams(round){
+
+        const snap = await getDocs(collection(db,"matchResults"))
+
+        const winners = snap.docs
+            .map(d=>d.data())
+            .filter(m=>m.round === round)
+            .map(m=>m.winner)
+
+        return winners
+  }
+
   async function createMatch(){
+
+    if(exists){
+        alert("Match label already exists for this round")
+        return
+    }
+
+    if(teamA === teamB){
+        alert("Same team cannot play against itself")
+        return
+    }
 
     if(!matchLabel || !teamA || !teamB){
       alert("Fill all fields");
       return;
+    }
+
+    const teamUsed = matches.some(m =>
+
+        m.round === round &&
+        m.id !== editingMatchId &&
+        (
+        m.teamAId === teamA ||
+        m.teamBId === teamA ||
+        m.teamAId === teamB ||
+        m.teamBId === teamB
+        )
+    )
+
+    if(teamUsed){
+        alert("Team already used in this round")
+        return
     }
 
     await addDoc(collection(db,"tournamentMatches"),{
