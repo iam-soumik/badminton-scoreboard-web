@@ -899,3 +899,40 @@ button:hover {
   padding:6px 10px;
   border-radius:6px;
 }
+
+/* ------------------------ Tournament setup Screen ------------------------ */
+.tournament-screen{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100%;
+}
+
+.tournament-card{
+  width:420px;
+  background:#111827;
+  padding:30px;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.tournament-card input,
+.tournament-card select{
+  padding:10px;
+}
+
+.tournament-card button{
+  margin-top:10px;
+  background:#2563eb;
+  border:none;
+  padding:12px;
+  color:white;
+  border-radius:6px;
+}
+
+.round-info{
+  font-size:14px;
+  opacity:0.8;
+}

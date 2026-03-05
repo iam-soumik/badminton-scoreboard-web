@@ -21,6 +21,12 @@ export default function MainMenu({ navigate }) {
 
           <button
             className="menu-btn admin"
+            onClick={()=>navigate("tournament-setup")}
+          >
+            🏆 Tournament Setup
+          </button>
+          <button
+            className="menu-btn admin"
             onClick={()=>navigate("teams")}
           >
             👥 Team Registration
