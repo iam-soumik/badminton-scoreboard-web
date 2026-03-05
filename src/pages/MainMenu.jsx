@@ -20,6 +20,12 @@ export default function MainMenu({ navigate }) {
         <div className="menu-buttons">
 
           <button
+            className="menu-btn admin"
+            onClick={()=>navigate("teams")}
+          >
+            👥 Team Registration
+          </button>
+          <button
             className="menu-btn primary"
             onClick={() => navigate("scoreboard")}
           >

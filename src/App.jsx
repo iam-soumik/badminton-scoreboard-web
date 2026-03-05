@@ -13,6 +13,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase/auth";
 import LoginScreen from "./pages/LoginScreen";
 import ResultsScreen from "./pages/ResultsScreen";
+import TeamRegistrationScreen from "./pages/TeamRegistrationScreen";
 
 export default function App() {
 
@@ -127,6 +128,14 @@ useEffect(() => {
         <>
           <TopBar showBack onBack={() => setScreen("menu")} />
           <ResultsScreen />
+        </>
+      );
+
+    case "teams":
+      return (
+        <>
+          <TopBar showBack onBack={() => setScreen("menu")} />
+          <TeamRegistrationScreen />
         </>
       );
 
