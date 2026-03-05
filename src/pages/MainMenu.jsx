@@ -25,6 +25,14 @@ export default function MainMenu({ navigate }) {
           >
             👥 Team Registration
           </button>
+          
+          <button
+            className="menu-btn admin"
+            onClick={()=>navigate("create-match")}
+          >
+            🏸 Create Match
+          </button>
+
           <button
             className="menu-btn primary"
             onClick={() => navigate("scoreboard")}

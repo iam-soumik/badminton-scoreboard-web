@@ -14,6 +14,7 @@ import { auth } from "./firebase/auth";
 import LoginScreen from "./pages/LoginScreen";
 import ResultsScreen from "./pages/ResultsScreen";
 import TeamRegistrationScreen from "./pages/TeamRegistrationScreen";
+import MatchCreatorScreen from "./pages/MatchCreatorScreen";
 
 export default function App() {
 
@@ -136,6 +137,14 @@ useEffect(() => {
         <>
           <TopBar showBack onBack={() => setScreen("menu")} />
           <TeamRegistrationScreen />
+        </>
+      );
+
+    case "create-match":
+      return (
+        <>
+          <TopBar showBack onBack={() => setScreen("menu")} />
+          <MatchCreatorScreen />
         </>
       );
 
