@@ -40,6 +40,13 @@ export default function MainMenu({ navigate }) {
             📽 Projector Display
           </button>
 
+          <button
+            className="menu-btn results"
+            onClick={() => navigate("results")}
+          >
+            📊 Match Results
+          </button>
+
         </div>
 
         <div className="menu-device-info">

@@ -551,6 +551,11 @@ button:hover {
   color: white;
 }
 
+.menu-btn.results {
+  background: #f59e0b;
+  color: black;
+}
+
 .menu-device-info {
   margin-top: 30px;
   display: flex;
@@ -622,3 +627,41 @@ button:hover {
   0%   { transform: scale(1.2); opacity: 0.6; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+.results-screen{
+  padding:40px;
+}
+
+.results-title{
+  text-align:center;
+  margin-bottom:30px;
+  letter-spacing:2px;
+}
+
+.results-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:18px;
+}
+
+.results-table th{
+  background:#020617;
+  padding:12px;
+  border-bottom:2px solid #334155;
+  text-align:left;
+}
+
+.results-table td{
+  padding:12px;
+  border-bottom:1px solid #1f2937;
+}
+
+.results-table tr:hover{
+  background:#0f172a;
+}
+
+.winner-cell{
+  color:#22c55e;
+  font-weight:bold;
+}
+
