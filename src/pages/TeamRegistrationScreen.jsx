@@ -23,6 +23,12 @@ export default function TeamRegistrationScreen() {
     setEditingId(t.id);
   }
 
+  function cancelEdit(){
+    setEditingId(null);
+    setTeamName("");
+    setPlayer1("");
+    setPlayer2("");
+  }
   async function saveTeam() {
 
     if (!player1 || !player2) {
@@ -148,7 +154,16 @@ export default function TeamRegistrationScreen() {
                         value={address}
                         onChange={(e)=>setAddress(e.target.value)}
                     />
-                    <button onClick={saveTeam}> Save Team </button>
+                    <div className="form-buttons">
+                        <button className="save-btn" onClick={saveTeam}>
+                            {editingId ? "Update Team" : "Save Team"}
+                        </button>
+                        {editingId && (
+                            <button className="cancel-btn" onClick={cancelEdit}>
+                            Cancel
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 

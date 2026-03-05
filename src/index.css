@@ -694,7 +694,7 @@ button:hover {
 
 /* ------------------------ Team Registration ------------------------ */
 .team-screen{
-  padding:40px;
+  padding:15px;
 }
 
 .team-container{
@@ -740,7 +740,6 @@ button:hover {
 .team-form button{
   margin-top:10px;
   padding:12px;
-  background:#16a34a;
   color:white;
   font-weight:bold;
   border:none;
@@ -793,6 +792,7 @@ button:hover {
   margin-top:8px;
   display:flex;
   gap:6px;
+  justify-content: right;
 }
 
 .edit-btn{
@@ -812,3 +812,23 @@ button:hover {
   border-radius:6px;
   font-size:12px;
 }
+.save-btn{
+  background:#16a34a;
+  cursor:pointer;
+}
+
+.cancel-btn{
+  background:#6b7280;   /* gray */
+  cursor:pointer;
+}
+
+.cancel-btn:hover{
+  background:#4b5563;
+}
+
+.form-buttons{
+  display:flex;
+  gap:10px;
+  justify-content: right;
+}
+
