@@ -24,6 +24,7 @@ export default function MatchCreatorScreen() {
   const [tournament,setTournament] = useState(null);
   const [openRound, setOpenRound] = useState(null);
   const [teamMap,setTeamMap] = useState({});
+  const [results, setResults] = useState([]);
 
   const ROUND_ORDER = ["SUPER32","PREQF","QF","SF","F"];
   const isSelected = matches.filter(m => m.round === round).flatMap(m => [m.teamAId, m.teamBId]);
@@ -52,6 +53,10 @@ export default function MatchCreatorScreen() {
     //loadTeams();
     loadMatches();
   },[]);
+
+  useEffect(() => {
+    loadResults();
+  }, []);
 
   useEffect(()=>{
     loadTeamsForRound(round)
@@ -85,6 +90,12 @@ export default function MatchCreatorScreen() {
     setMatchLabel("");
     setTeamA("");
     setTeamB("");
+  }
+
+  async function loadResults() {
+    const snap = await getDocs(collection(db, "matchResults"));
+    const list = snap.docs.map(d => d.data());
+    setResults(list);
   }
 
   async function loadTournament(){
@@ -216,6 +227,17 @@ export default function MatchCreatorScreen() {
   }
 
   async function deleteMatch(id){
+    const match = matches.find(m => m.id === id);
+    if(!match) return;
+    // check if result exists
+    const snap = await getDocs(collection(db,"matchResults"));
+    const resultExists = snap.docs
+      .map(d => d.data())
+      .some(r => r.matchLabel === match.label);
+    if(resultExists){
+      alert("Cannot delete this match because the result is already recorded.");
+      return;
+    }
     if(!confirm("Delete this match?")) return;
     await deleteDoc(doc(db,"tournamentMatches",id));
     loadMatches();
@@ -237,6 +259,12 @@ export default function MatchCreatorScreen() {
         a.label.localeCompare(b.label, undefined, { numeric: true })
       );
   });
+
+  const resultMatchSet = new Set(results.map(r => r.matchLabel));
+
+  function isResultRecorded(label){
+    return resultMatchSet.has(label);
+  }
 
   return(
     <div className="match-screen">
@@ -356,8 +384,10 @@ export default function MatchCreatorScreen() {
                         <button className="edit-btn" onClick={() => startEdit(m)} >
                           Edit
                         </button>
-                        <button className="delete-btn" onClick={() => deleteMatch(m.id)} >
-                          Delete
+                        <button
+                          className="delete-btn" onClick={() => deleteMatch(m.id)}
+                          disabled={isResultRecorded(m.label)} >
+                            {isResultRecorded(m.label) ? "Delete 🔒" : "Delete"}
                         </button>
                       </div>
                     </div>

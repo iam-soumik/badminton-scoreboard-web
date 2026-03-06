@@ -969,3 +969,8 @@ button:hover {
 .match-grid-wrapper.open {
   max-height: 500px;
 }
+
+.delete-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
