@@ -936,3 +936,36 @@ button:hover {
   font-size:14px;
   opacity:0.8;
 }
+
+/* ----------------- Create Match --------------------  */
+.team-used {
+  color: #999;
+  background: #f3f3f3;
+  font-style: italic;
+}
+
+.round-header {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.round-arrow {
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform 0.2s ease;
+}
+
+.round-arrow.open {
+  transform: rotate(90deg);
+}
+.match-grid-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.match-grid-wrapper.open {
+  max-height: 500px;
+}
