@@ -82,29 +82,20 @@ export default function CenterPanel({
       {!readOnly && (
         <div className="utility-div">
 
-            <button
-            className="utility-btn"
-            disabled={!canScore}
-            onClick={undo}
-            >
-            Undo
+            <button className="utility-btn" disabled={!canScore} onClick={undo} >
+              Undo
             </button>
 
-            <button
-            className="utility-btn"
-            disabled={!canScore}
-            onClick={announceScore}
-            >
-            Score
+            <button className="utility-btn" disabled={!canScore} onClick={announceScore} >
+              Score
             </button>
 
-            <button
-            className="utility-btn"
-            disabled={
-                deviceMode === "standby" ||
-                game.matchStatus !== "live"
-            }
-            onClick={manualSync}
+            <button className="utility-btn"
+              disabled={
+                  deviceMode === "standby" ||
+                  game.matchStatus !== "live"
+              }
+              onClick={manualSync}
             >
             🔄 Manual Sync
             </button>

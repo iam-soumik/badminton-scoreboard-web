@@ -25,32 +25,34 @@ export default function PrematchPanel({ game }) {
   }, []);
 
   const handleSelect = async (matchId) => {
-
     if (!matchId) return;
-
     const confirmLoad = window.confirm(
       "Load this match? Current setup will be replaced."
     );
-
     if (!confirmLoad) return;
-
+    
     const snap = await getDoc(doc(db, "tournamentMatches", matchId));
-
     if (!snap.exists()) return;
-
     const data = snap.data();
 
+    // load team documents
+    const teamASnap = await getDoc(doc(db,"teams",data.teamAId));
+    const teamBSnap = await getDoc(doc(db,"teams",data.teamBId));
+    const teamAData = teamASnap.data();
+    const teamBData = teamBSnap.data();
+
     dispatch(loadPrematch({
-        matchId,
-        matchLabel: data.label,
-        teamA: {
-            name: data.teamAName,
-            players: data.teamAPlayers
-        },
-        teamB: {
-            name: data.teamBName,
-            players: data.teamBPlayers
-        }
+      matchId,
+      matchLabel: data.label,
+
+      teamA: {
+        name: teamAData.teamName,
+        players: teamAData.players
+      },
+      teamB: {
+        name: teamBData.teamName,
+        players: teamBData.players
+      }
     }));
   };
 

@@ -19,8 +19,8 @@ export default function ResultsScreen() {
             // fetch match info from tournamentMatches
             
             const q = query(
-            collection(db, "tournamentMatches"),
-            where("label", "==", result.matchLabel)
+                collection(db, "tournamentMatches"),
+                where("label", "==", result.matchLabel)
             );
 
             const querySnap = await getDocs(q);
@@ -30,13 +30,11 @@ export default function ResultsScreen() {
             let teamB = "Team B";
 
             if (!querySnap.empty) {
-
                 const m = querySnap.docs[0].data();
-
-                console.log("m --> ", m);
-
-                teamA = m.teamAPlayers.join(" / ");
-                teamB = m.teamBPlayers.join(" / ");
+                const teamASnap = await getDoc(doc(db,"teams",m.teamAId));
+                const teamBSnap = await getDoc(doc(db,"teams",m.teamBId));
+                teamA = teamASnap.data()?.players?.join(" / ") || "Team A";
+                teamB = teamBSnap.data()?.players?.join(" / ") || "Team B";
             }
 
             list.push({

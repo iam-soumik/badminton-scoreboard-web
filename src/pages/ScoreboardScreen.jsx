@@ -189,13 +189,17 @@ export default function ScoreboardScreen({ device }) {
         matchLabel: game.prematch.matchLabel,
         teamAName: game.teamInfo.teamA,
         teamBName: game.teamInfo.teamB,
+        round: game.prematch.matchLabel.replace(/[0-9]/g,''), // PQF1 → PQF
         gamesWon: game.gamesWon,
         setResults: game.setResults,
         winner: game.teamInfo[winner],
         createdAt: serverTimestamp(),
       });
-
       console.log("✅ Match result saved");
+      //RESET
+      await setDoc(doc(db,"matches","live"),{
+        gameState: null
+      });
     };
 
     saveMatchResult();
@@ -281,10 +285,13 @@ export default function ScoreboardScreen({ device }) {
   function handleStartNewMatch() {
     dispatch(startNewMatch());
   }
+  if (!hydrated) {
+    return <div>Restoring match...</div>
+  }
 
   return (
     <div className="app-root">
-
+      
         <ScoreboardLayout
           game={game}
           device={device}
