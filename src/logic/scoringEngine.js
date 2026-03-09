@@ -110,6 +110,7 @@ export function createScoringEngine() {
 
   function setFullState(newState) {
     state = JSON.parse(JSON.stringify(newState));
+    console.log("setFullState :-  ",state);
   }
 
   function swapCourtsOnly() {

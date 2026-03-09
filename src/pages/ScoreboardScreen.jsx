@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { addPoint, loadFullState, pauseMatch, resumeMatch, startNewMatch, swapPlayers, undo } from '../redux/gameSlice';
+import { addPoint, loadFullState, pauseMatch, reset, resumeMatch, startNewMatch, swapPlayers, undo } from '../redux/gameSlice';
 import { useEffect, useState, useRef } from 'react';
 import { speak } from '../utils/speak';
 import { store } from '../redux/store';
@@ -156,11 +156,14 @@ export default function ScoreboardScreen({ device }) {
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
-        const data = snap.data();
-        if (data.gameState) {
-            dispatch(loadFullState(data.gameState));
-            console.log("🔁 Restored match state");
-        }
+          const data = snap.data();
+          if (data.gameState && data.gameState.matchStatus !== "finished") {
+              dispatch(loadFullState(data.gameState));
+              console.log("🔁 Restored match state - data.gameState :-- ",data.gameState);
+          } else {
+            console.log("No active match. Showing prematch.");
+            dispatch(reset());   // go to prematch screen
+          }
         }
 
         setHydrated(true);  // 🔥 IMPORTANT
@@ -196,10 +199,6 @@ export default function ScoreboardScreen({ device }) {
         createdAt: serverTimestamp(),
       });
       console.log("✅ Match result saved");
-      //RESET
-      await setDoc(doc(db,"matches","live"),{
-        gameState: null
-      });
     };
 
     saveMatchResult();
@@ -282,9 +281,11 @@ export default function ScoreboardScreen({ device }) {
     dispatch(clearLastSetResult());
   }
 
-  function handleStartNewMatch() {
+  async function handleStartNewMatch() {
+    // reset local scoring engine
     dispatch(startNewMatch());
   }
+
   if (!hydrated) {
     return <div>Restoring match...</div>
   }
