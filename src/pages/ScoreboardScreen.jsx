@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { addPoint, loadFullState, pauseMatch, reset, resumeMatch, startNewMatch, swapPlayers, undo } from '../redux/gameSlice';
+import { addPoint, confirmThirdSetSwap, loadFullState, pauseMatch, reset, resumeMatch, startNewMatch, swapPlayers, undo } from '../redux/gameSlice';
 import { useEffect, useState, useRef } from 'react';
 import { speak } from '../utils/speak';
 import { store } from '../redux/store';
@@ -27,6 +27,7 @@ export default function ScoreboardScreen({ device }) {
   const [setPopup, setSetPopup] = useState(null);
   const [hydrated, setHydrated] = useState(false);
   const [showHistory,setShowHistory] = useState(false);
+  const [swapPopup,setSwapPopup] = useState(false);
   const prevServerRef = useRef(game.server);
 
   const canScore =
@@ -37,7 +38,14 @@ export default function ScoreboardScreen({ device }) {
     prevServerRef.current = game.server;
   }, [game.server]);
 
-  
+  useEffect(()=>{
+    if(game.thirdGameSwapPending){
+      setSwapPopup(true);
+    } else {
+      setSwapPopup(false);
+    }
+  },[game.thirdGameSwapPending]);
+
   /* 🔥 Primary Auto Push to Firestore (ONLY LIVE) */
   useEffect(() => {
     if (!hydrated) return;   
@@ -337,6 +345,33 @@ export default function ScoreboardScreen({ device }) {
           />
         )}
 
+        {swapPopup && (
+        <div className="swap-popup">
+          <div className="swap-popup-card">
+            <h2>🔄 Court Change</h2>
+            <p>
+              One team reached 11 points in the final set.
+              Players must change court sides.
+            </p>
+            <button
+              onClick={()=>{
+                setSwapPopup(false);
+                dispatch(confirmThirdSetSwap());
+              }}
+            >
+              OK
+            </button>
+            <button
+              onClick={()=>{
+                setSwapPopup(false)
+                dispatch(undo())
+              }}
+            >
+              Undo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

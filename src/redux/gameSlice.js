@@ -74,6 +74,11 @@ const gameSlice = createSlice({
     setFirstServerTeam(state, action) {
       engine.setFirstServerTeam(action.payload);
       return engine.getState();
+    },
+
+    confirmThirdSetSwap(state){
+      engine.confirmThirdSetSwap();
+      return engine.getState();
     }
 
   },
@@ -84,7 +89,7 @@ export const { addPoint, undo, reset,
                startMatch, pauseMatch, resumeMatch, 
                loadPrematch, swapPlayers, swapTeams,
                clearLastSetResult, startNewMatch,
-               setFirstServerTeam
+               setFirstServerTeam, confirmThirdSetSwap
 } = gameSlice.actions;
 
 export default gameSlice.reducer;

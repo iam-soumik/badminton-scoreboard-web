@@ -51,6 +51,7 @@ export function createScoringEngine() {
 
       started: false,
       thirdGameSwapDone: false,
+      thirdGameSwapPending: false,
       matchFinished: false,
 
       teamInfo: {
@@ -94,6 +95,7 @@ export function createScoringEngine() {
             gameNumber: state.gameNumber,
             started: state.started,
             thirdGameSwapDone: state.thirdGameSwapDone,
+            thirdGameSwapPending: state.thirdGameSwapPending, 
             matchFinished: state.matchFinished,
             matchStatus: state.matchStatus,   // ✅ ADD THIS
             teamInfo: state.teamInfo,   // 👈 REQUIRED
@@ -158,6 +160,7 @@ export function createScoringEngine() {
   function addPoint(courtSide) {
     if (state.matchFinished) return;
     if (state.matchStatus !== "live") return;   // 🔥 CRITICAL
+    if (state.thirdGameSwapPending) return; // 🔒 Block scoring during 3rd set court change
 
     // ✅ Auto-start match on first rally
     /*if (state.matchStatus === "idle") {
@@ -197,10 +200,9 @@ export function createScoringEngine() {
     updateServicePosition(team, sameServer)
 
     // 🔁 3rd set mid swap at 11
-    if (state.gameNumber === 3 && !state.thirdGameSwapDone) {
+    if (state.gameNumber === 3 && !state.thirdGameSwapDone && !state.thirdGameSwapPending) {
       if (state.score.teamA === 11 || state.score.teamB === 11) {
-        swapCourtsOnly()
-        state.thirdGameSwapDone = true
+        state.thirdGameSwapPending = true;
       }
     }
 
@@ -258,6 +260,14 @@ export function createScoringEngine() {
     if (!state.history.length) return
     const previous = state.history.pop()
     Object.assign(state, previous)
+    /* 🔄 Recalculate 3rd set swap condition */
+    if (
+      state.gameNumber === 3 &&
+      (state.score.teamA < 11 && state.score.teamB < 11)
+    ) {
+      state.thirdGameSwapPending = false
+      state.thirdGameSwapDone = false
+    }
   }
 
   function reset() {
@@ -407,9 +417,16 @@ export function createScoringEngine() {
     state.revision++;
   }
 
+  function confirmThirdSetSwap(){
+    if(!state.thirdGameSwapPending) return;
+    swapCourtsOnly();
+    state.thirdGameSwapDone = true;
+    state.thirdGameSwapPending = false;
+    state.revision++;
+  }
   return { addPoint, undo, reset, getState, 
             pauseMatch, resumeMatch, startMatch,
             setFullState, loadPrematchData, swapPlayers, swapTeams,
-            clearLastSetResult, startNewMatch , setFirstServerTeam   
+            clearLastSetResult, startNewMatch , setFirstServerTeam,confirmThirdSetSwap
   }
 }

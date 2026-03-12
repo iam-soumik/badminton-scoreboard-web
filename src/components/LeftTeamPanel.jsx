@@ -68,7 +68,7 @@ export default function LeftTeamPanel({
           disabled={
             game.matchFinished ||
             !canScore ||
-            game.matchStatus !== "live"
+            game.matchStatus !== "live" 
           }
         >
           +1
