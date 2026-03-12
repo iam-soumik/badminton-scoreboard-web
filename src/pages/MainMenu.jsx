@@ -20,20 +20,20 @@ export default function MainMenu({ navigate }) {
         <div className="menu-buttons">
 
           <button
-            className="menu-btn admin"
+            className="menu-btn tournament"
             onClick={()=>navigate("tournament-setup")}
           >
             🏆 Tournament Setup
           </button>
           <button
-            className="menu-btn admin"
+            className="menu-btn teams"
             onClick={()=>navigate("teams")}
           >
             👥 Team Registration
           </button>
           
           <button
-            className="menu-btn admin"
+            className="menu-btn match"
             onClick={()=>navigate("create-match")}
           >
             🏸 Create Match
@@ -67,7 +67,9 @@ export default function MainMenu({ navigate }) {
             📊 Match Results
           </button>
 
-          <button onClick={()=>navigate("match-history")}>
+          <button 
+            className="menu-btn history"
+            onClick={()=>navigate("match-history")}>
             📜 Match History
           </button>
 
