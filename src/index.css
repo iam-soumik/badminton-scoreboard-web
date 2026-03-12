@@ -1039,13 +1039,20 @@ button:hover {
 /* title */
 
 .history-title{
-  font-size:22px;
   font-weight:600;
+  text-align:center;
+  letter-spacing:1px;
+  margin: 5px !important;
+  color: #fff;
+}
+
+.history-title-body{
   margin-bottom:5px;
   text-align:center;
   letter-spacing:1px;
   border-bottom: #064e3b 1px solid;
   padding-bottom: 5px;
+  color: #e2d136;
 }
 
 /* close button */

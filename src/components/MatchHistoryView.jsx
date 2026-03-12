@@ -3,6 +3,7 @@ import MiniCourt from "./MiniCourt";
 
 export default function MatchHistoryView({ game, onClose, isPopup }) {
 
+    let matchLabel = game.prematch?.matchLabel + " : " + game.teamInfo?.teamA + " vs " + game.teamInfo?.teamB;
     const history = game.history || [];
 
     /* Build full timeline including current state */
@@ -25,6 +26,7 @@ export default function MatchHistoryView({ game, onClose, isPopup }) {
     ];
 
     console.log("timeline ->  ",timeline);
+    console.log("game ->  ",game);
     const rallies = timeline.slice(1).map((snapshot, i) => ({
         snapshot,
         index: i
@@ -87,7 +89,11 @@ export default function MatchHistoryView({ game, onClose, isPopup }) {
         {onClose && (
           <button className="history-close" onClick={onClose}>✕</button>
         )}
-        <h2 className="history-title">Match History</h2>
+        <div className="history-title-body">
+            <h2 className="history-title">Match History</h2> <span>{matchLabel}</span>
+        </div>
+        
+        
         <div className="set-filter">
             <button className={selectedSet==="all"?"active":""} onClick={()=>setSelectedSet("all")} >
                 All Sets
