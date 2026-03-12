@@ -38,6 +38,12 @@ export default function ScoreboardScreen({ device }) {
     prevServerRef.current = game.server;
   }, [game.server]);
 
+  useEffect(() => { // When UNDO from popup, popup will close
+    if (!game.lastSetResult) {
+      setSetPopup(null);
+    }
+  }, [game.lastSetResult]);
+
   useEffect(()=>{
     if(game.thirdGameSwapPending){
       setSwapPopup(true);
@@ -122,9 +128,10 @@ export default function ScoreboardScreen({ device }) {
         const updated = store.getState().game;
 
         // 🛑 If set just ended → don't double announce
-        if (updated.lastSetResult && !updated.matchFinished) {
-        prevServerRef.current = updated.server;
-        return;
+        /* 🛑 Skip normal announcement if set finished */
+        if (updated.lastSetResult || updated.matchFinished) {
+            prevServerRef.current = updated.server;
+            return;
         }
 
         const newServer = updated.server;
