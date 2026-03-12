@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { startNewMatch } from "../redux/gameSlice";
 import PrematchPanel from "./PrematchPanel";
+import { formatDuration } from "../utils/utility";
 
 export default function CenterPanel({
   game,
@@ -17,6 +19,7 @@ export default function CenterPanel({
 
   /* 🧮 Build Set Grid */
   const MAX_SETS = 3;
+  const [time,setTime] = useState(0);
 
   const setGrid = Array.from({ length: MAX_SETS }, (_, i) => {
     const completed = game.setResults[i];
@@ -40,6 +43,21 @@ export default function CenterPanel({
     return { teamA: "", teamB: "", status: "future" };
   });
 
+  useEffect(()=>{
+
+    if(game.matchStatus !== "live") return;
+
+    const interval = setInterval(()=>{
+      setTime(Date.now());
+    },1000);
+
+    return ()=>clearInterval(interval);
+
+  },[game.matchStatus]);
+
+  const elapsed = formatDuration(game.matchTiming.startTime
+  ? Math.floor((time - game.matchTiming.startTime)/1000)
+  : 0);
 
   return (
     <div className="center-panel">
@@ -76,7 +94,6 @@ export default function CenterPanel({
             {s.teamB}
           </div>
         ))}
-
       </div>
 
       {/* 🎛 UTILITY CONTROLS */}
@@ -143,6 +160,9 @@ export default function CenterPanel({
       {/* 📢 GAME INFO */}
       <div className="game-info">
         Game {game.gameNumber} • Server: {game.teamInfo[game.server.team]}
+        <div className="timer-duration">
+          <span> Match Duration : {elapsed}</span>
+        </div>
       </div>
 
     </div>

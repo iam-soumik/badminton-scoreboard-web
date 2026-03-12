@@ -143,6 +143,11 @@ html, body, #root {
   gap: 16px;
 }
 
+.timer-duration{
+  margin-top: 10px;
+  color: yellow;
+  font-size: 13px;
+}
 .prematch-panel {
   background: #388150;
   padding: 12px;

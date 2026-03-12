@@ -189,6 +189,13 @@ export default function ScoreboardScreen({ device }) {
 
       const winner =
         game.gamesWon.teamA > game.gamesWon.teamB ? "teamA" : "teamB";
+        
+      const start = game.matchTiming?.startTime;
+      const end = game.matchTiming?.endTime;
+
+      const duration = start && end
+        ? Math.floor((end - start) / 1000)
+        : null;
 
       await setDoc(matchRef, {
         matchNumber: game.tournamentMatchNumber,
@@ -199,6 +206,7 @@ export default function ScoreboardScreen({ device }) {
         gamesWon: game.gamesWon,
         setResults: game.setResults,
         winner: game.teamInfo[winner],
+        durationSeconds: duration,
         createdAt: serverTimestamp(),
       });
       console.log("✅ Match result saved");

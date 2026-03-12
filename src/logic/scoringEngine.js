@@ -67,6 +67,11 @@ export function createScoringEngine() {
         matchLabel: "",
       },
 
+      matchTiming: {
+        startTime: null,
+        endTime: null
+      },
+
       history: [],
       matchStatus: "idle",   // idle | live | paused | finished
       tournamentMatchNumber: 1,
@@ -224,6 +229,7 @@ export function createScoringEngine() {
       if (isMatchOver) {
         state.matchFinished = true
         state.matchStatus = "finished";
+        state.matchTiming.endTime = Date.now();
         return   // 🔒 DO NOT swap courts, DO NOT reset scores
       }
 
@@ -324,8 +330,10 @@ export function createScoringEngine() {
 
   function startMatch() {
     if (state.matchStatus !== "idle") return;
-
     state.matchStatus = "live";
+    if(!state.matchTiming.startTime){
+      state.matchTiming.startTime = Date.now();
+    }
     state.revision++;
   }
 

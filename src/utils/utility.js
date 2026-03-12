@@ -13,3 +13,10 @@ export function getMatchLabels(round) {
   const count = map[round] || 1;
   return Array.from({ length: count }, (_, i) => `${round}${i + 1}`);
 }
+
+export function formatDuration(sec){
+  if(!sec) return "-";
+  const m = Math.floor(sec/60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
