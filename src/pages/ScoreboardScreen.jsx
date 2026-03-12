@@ -93,7 +93,8 @@ export default function ScoreboardScreen({ device }) {
     const loserScore = r.winner === 'teamA' ? r.teamB : r.teamA
 
     speakIfPrimary(
-      `Set won by ${getTeamDisplayName(r.winner)}  ${winnerScore} ${loserScore}`
+      `Game over -  ${winnerScore} ${loserScore}`
+      //`Set won by ${getTeamDisplayName(r.winner)}  ${winnerScore} ${loserScore}`
     )
 
   }, [game.lastSetResult])
