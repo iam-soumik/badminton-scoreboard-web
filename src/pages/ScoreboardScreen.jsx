@@ -17,6 +17,8 @@ import confirmAction from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
 import { clearLastSetResult } from '../redux/gameSlice';
 
+import MatchHistoryView from '../components/MatchHistoryView';
+
 export default function ScoreboardScreen({ device }) {
 
   const dispatch = useDispatch();
@@ -24,6 +26,7 @@ export default function ScoreboardScreen({ device }) {
 
   const [setPopup, setSetPopup] = useState(null);
   const [hydrated, setHydrated] = useState(false);
+  const [showHistory,setShowHistory] = useState(false);
   const prevServerRef = useRef(game.server);
 
   const canScore =
@@ -313,7 +316,17 @@ export default function ScoreboardScreen({ device }) {
           onSwap={handleSwap}
           onSetPopupClose={handleSetPopupClose}
           onStartNewMatch={handleStartNewMatch}
+          showHistory={showHistory}
+          setShowHistory={setShowHistory}
         />
+
+        {showHistory && (
+          <MatchHistoryView
+            game={game}
+            isPopup={true}
+            onClose={()=>setShowHistory(false)}
+          />
+        )}
 
     </div>
   );

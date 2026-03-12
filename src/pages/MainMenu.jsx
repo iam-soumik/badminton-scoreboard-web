@@ -67,6 +67,10 @@ export default function MainMenu({ navigate }) {
             📊 Match Results
           </button>
 
+          <button onClick={()=>navigate("match-history")}>
+            📜 Match History
+          </button>
+
         </div>
 
         <div className="menu-device-info">

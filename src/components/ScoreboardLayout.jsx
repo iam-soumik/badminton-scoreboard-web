@@ -5,6 +5,7 @@ import SetPopup from "./SetPopup";
 import PrematchPanel from "./PrematchPanel";
 import { clearLastSetResult } from "../redux/gameSlice";
 
+
 export default function ScoreboardLayout({
   game,
   device,
@@ -23,6 +24,8 @@ export default function ScoreboardLayout({
   onSetPopupClose,
   onStartNewMatch,
   readOnly = false,
+  setShowHistory,
+  showHistory 
 }) {
 
   return (
@@ -53,6 +56,7 @@ export default function ScoreboardLayout({
         deviceMode={device?.mode}
         readOnly={readOnly}
         onStartNewMatch={onStartNewMatch}
+        setShowHistory={setShowHistory}
       />
 
       <RightTeamPanel

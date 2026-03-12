@@ -16,6 +16,7 @@ import ResultsScreen from "./pages/ResultsScreen";
 import TeamRegistrationScreen from "./pages/TeamRegistrationScreen";
 import MatchCreatorScreen from "./pages/MatchCreatorScreen";
 import TournamentSetupScreen from "./pages/TournamentSetupScreen";
+import MatchHistoryScreen from "./pages/MatchHistoryScreen";
 
 export default function App() {
 
@@ -154,6 +155,14 @@ useEffect(() => {
         <>
           <TopBar showBack onBack={() => setScreen("menu")} />
           <TournamentSetupScreen />
+        </>
+      );
+
+    case "match-history":
+      return (
+        <>
+          <TopBar showBack onBack={() => setScreen("menu")} />
+          <MatchHistoryScreen />
         </>
       );
 

@@ -11,7 +11,8 @@ export default function CenterPanel({
   resume,
   deviceMode,
   onStartNewMatch,
-  readOnly = false
+  readOnly = false,
+  setShowHistory
 }) {
 
   /* 🧮 Build Set Grid */
@@ -124,6 +125,15 @@ export default function CenterPanel({
                 onClick={onStartNewMatch}
               >
                 🆕 New Match
+              </button>
+            )}
+
+            {game.history && game.history.length > 0 && (
+              <button
+                className="utility-btn history-btn"
+                onClick={() => setShowHistory(true)}
+              >
+                📜 {game.matchFinished ? "Match History" : "History"}
               </button>
             )}
 
