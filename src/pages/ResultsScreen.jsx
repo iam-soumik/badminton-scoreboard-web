@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
+import { getTournamentMatchRound, resultMatchesTournamentMatch, sortMatchResultsNewestFirst } from "../utils/utility";
 
 export default function ResultsScreen() {
 
@@ -11,41 +11,40 @@ export default function ResultsScreen() {
 
     async function loadResults() {
 
-        const snap = await getDocs(collection(db, "matchResults"));
+        const [resultSnap, matchSnap, teamSnap] = await Promise.all([
+            getDocs(collection(db, "matchResults")),
+            getDocs(collection(db, "tournamentMatches")),
+            getDocs(collection(db, "teams")),
+        ]);
+        const matchList = matchSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const teamMap = {};
+        teamSnap.docs.forEach(d => {
+            teamMap[d.id] = { id: d.id, ...d.data() };
+        });
         const list = [];
-        for (const d of snap.docs) {
+        for (const d of resultSnap.docs) {
             const result = d.data();
-
-            // fetch match info from tournamentMatches
-            
-            const q = query(
-                collection(db, "tournamentMatches"),
-                where("label", "==", result.matchLabel)
-            );
-
-            const querySnap = await getDocs(q);
-
-            console.log("querySnap --> ",querySnap);
-            let teamA = "Team A";
-            let teamB = "Team B";
-
-            if (!querySnap.empty) {
-                const m = querySnap.docs[0].data();
-                const teamASnap = await getDoc(doc(db,"teams",m.teamAId));
-                const teamBSnap = await getDoc(doc(db,"teams",m.teamBId));
-                teamA = teamASnap.data()?.players?.join(" / ") || "Team A";
-                teamB = teamBSnap.data()?.players?.join(" / ") || "Team B";
-            }
+            const match = matchList.find(m => resultMatchesTournamentMatch(result, m));
+            const teamAId = result.teamAId || match?.teamAId;
+            const teamBId = result.teamBId || match?.teamBId;
+            const winnerTeamId = result.winnerTeamId;
+            const teamAData = teamMap[teamAId];
+            const teamBData = teamMap[teamBId];
+            const winnerTeamData = teamMap[winnerTeamId];
+            const teamA = teamAData?.players?.join(" / ") || result.teamAName || "Team A";
+            const teamB = teamBData?.players?.join(" / ") || result.teamBName || "Team B";
+            const winnerDisplay = winnerTeamData?.players?.join(" / ") || result.winnerTeamName || result.winner;
 
             list.push({
                 id: d.id,
                 ...result,
+                match,
                 teamA,
-                teamB
+                teamB,
+                winnerDisplay
             });
         }
-        console.log("list --> ",list);
-        setResults(list);
+        setResults(sortMatchResultsNewestFirst(list));
     }
 
     loadResults();
@@ -56,8 +55,7 @@ export default function ResultsScreen() {
 
     results.forEach(r => {
 
-        const matchCode = r.matchLabel.split(" ")[0]; // QF1
-        const roundCode = matchCode.replace(/[0-9]/g, ""); // QF
+        const roundCode = getTournamentMatchRound(r.match || r); // QF
 
         let roundName = "";
 
@@ -98,10 +96,6 @@ export default function ResultsScreen() {
                             const setScores = (r.setResults || [])
                                 .map(s => `${s.teamA}-${s.teamB}`)
                                 .join(" ");
-                            const winner =
-                                r.winner === r.teamAName
-                                ? r.teamA
-                                : r.teamB;
                             return (
                                 <tr key={r.id}>
                                     <td>{r.matchLabel.split(" ")[0]}</td>
@@ -109,7 +103,7 @@ export default function ResultsScreen() {
                                     <td>{r.teamB?.toUpperCase()}</td>
                                     <td>{setScores}</td>
                                     <td className="winner-cell">
-                                        {winner?.toUpperCase()}
+                                        {r.winnerDisplay?.toUpperCase()}
                                     </td>
                                 </tr>
                             );

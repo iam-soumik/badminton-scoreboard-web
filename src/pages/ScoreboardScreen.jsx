@@ -13,7 +13,7 @@ import SetPopup from '../components/SetPopup';
 import { manualTwoWaySync } from '../utils/syncMatchManually'
 import { doc, updateDoc, serverTimestamp, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
-import confirmAction from '../utils/utility';
+import confirmAction, { buildMatchResultPayload } from '../utils/utility';
 import ScoreboardLayout from "../components/ScoreboardLayout";
 import { clearLastSetResult } from '../redux/gameSlice';
 
@@ -29,6 +29,7 @@ export default function ScoreboardScreen({ device }) {
   const [showHistory,setShowHistory] = useState(false);
   const [swapPopup,setSwapPopup] = useState(false);
   const prevServerRef = useRef(game.server);
+  const savedResultKeyRef = useRef(null);
 
   const canScore =
     device?.mode === "primary" ||
@@ -56,7 +57,7 @@ export default function ScoreboardScreen({ device }) {
   useEffect(() => {
     if (!hydrated) return;   
     if (device?.mode !== "primary") return;
-    if (game.matchStatus !== "live") return;
+    if (game.matchStatus !== "live" && !game.matchFinished) return;
 
     pushMatchState(game, getDeviceId());
 
@@ -197,34 +198,21 @@ export default function ScoreboardScreen({ device }) {
     if (!game.matchFinished) return;
 
     const saveMatchResult = async () => {
+      const resultKey = `${game.tournamentMatchNumber}:${game.prematch.tournamentMatchId || game.prematch.matchId || game.prematch.matchLabel}`;
+      if (savedResultKeyRef.current === resultKey) return;
+      savedResultKeyRef.current = resultKey;
+
       const matchRef = doc(
         db,
         "matchResults",
         `match_${game.tournamentMatchNumber}`
       );
 
-      const winner =
-        game.gamesWon.teamA > game.gamesWon.teamB ? "teamA" : "teamB";
-        
-      const start = game.matchTiming?.startTime;
-      const end = game.matchTiming?.endTime;
-
-      const duration = start && end
-        ? Math.floor((end - start) / 1000)
-        : null;
-
-      await setDoc(matchRef, {
-        matchNumber: game.tournamentMatchNumber,
-        matchLabel: game.prematch.matchLabel,
-        teamAName: game.teamInfo.teamA,
-        teamBName: game.teamInfo.teamB,
-        round: game.prematch.matchLabel.replace(/[0-9]/g,''), // PQF1 → PQF
-        gamesWon: game.gamesWon,
-        setResults: game.setResults,
-        winner: game.teamInfo[winner],
-        durationSeconds: duration,
-        createdAt: serverTimestamp(),
-      });
+      await setDoc(
+        matchRef,
+        buildMatchResultPayload(game, serverTimestamp()),
+        { merge: true }
+      );
       console.log("✅ Match result saved");
     };
 

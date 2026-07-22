@@ -65,7 +65,11 @@ export function createScoringEngine() {
 
       prematch: {
         matchId: null,
+        tournamentMatchId: null,
         matchLabel: "",
+        round: "",
+        teamAId: null,
+        teamBId: null,
       },
 
       matchTiming: {
@@ -292,10 +296,14 @@ export function createScoringEngine() {
 
   function loadPrematchData(payload) {
 
-    const { matchId, matchLabel, teamA, teamB } = payload;
+    const { matchId, tournamentMatchId, matchLabel, round, teamAId, teamBId, teamA, teamB } = payload;
 
     state.prematch.matchId = matchId;
+    state.prematch.tournamentMatchId = tournamentMatchId || matchId;
     state.prematch.matchLabel = matchLabel;
+    state.prematch.round = round || "";
+    state.prematch.teamAId = teamAId || null;
+    state.prematch.teamBId = teamBId || null;
 
     state.teamInfo.teamA = teamA.name;
     state.teamInfo.teamB = teamB.name;
@@ -383,6 +391,11 @@ export function createScoringEngine() {
     const tempName = state.teamInfo.teamA;
     state.teamInfo.teamA = state.teamInfo.teamB;
     state.teamInfo.teamB = tempName;
+
+    // Keep stable ids aligned with the logical teams after prematch swapping.
+    const tempTeamId = state.prematch.teamAId;
+    state.prematch.teamAId = state.prematch.teamBId;
+    state.prematch.teamBId = tempTeamId;
 
     // Swap games won
     const tempGames = state.gamesWon.teamA;

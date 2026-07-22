@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
-import { getMatchLabels } from '../utils/utility';
+import { getMatchLabels, getRoundWinnerTeams, isMatchCompleted } from '../utils/utility';
 import {
   collection,
   addDoc,
@@ -25,6 +25,8 @@ export default function MatchCreatorScreen() {
   const [openRound, setOpenRound] = useState(null);
   const [teamMap,setTeamMap] = useState({});
   const [results, setResults] = useState([]);
+  const [allTeams,setAllTeams] = useState([]);
+  const [progressionWarning,setProgressionWarning] = useState("");
 
   const ROUND_ORDER = ["SUPER32","PREQF","QF","SF","F"];
   const isSelected = matches.filter(m => m.round === round).flatMap(m => [m.teamAId, m.teamBId]);
@@ -94,7 +96,7 @@ export default function MatchCreatorScreen() {
 
   async function loadResults() {
     const snap = await getDocs(collection(db, "matchResults"));
-    const list = snap.docs.map(d => d.data());
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     setResults(list);
   }
 
@@ -113,6 +115,7 @@ export default function MatchCreatorScreen() {
     }));
 
     setTeams(list);     // dropdown teams
+    setAllTeams(list);
     //setAllTeams(list);  // optional if still used
 
     const map = {};
@@ -142,23 +145,35 @@ export default function MatchCreatorScreen() {
         ...d.data()
       }));
       setTeams(list);
+      setAllTeams(list);
+      setProgressionWarning("");
       return;
     }
 
     // NEXT ROUND → winners of previous round
     const index = ROUND_ORDER.indexOf(round);
     const prevRound = ROUND_ORDER[index-1];
-    const snap = await getDocs(collection(db,"matchResults"));
-    console.log("snap.docs --> ",snap.docs);
-    console.log("snap.docs.data --> ",snap.docs.map(d=>d.data()));
-    const winners = snap.docs
-      .map(d=>d.data())
-      .filter(m => m.round === prevRound)
-      .map(m => ({
-        id: m.winner,
-        teamName: m.winner
-      }));
-      console.log("winners --> ",winners);
+    const [resultSnap, matchSnap, teamSnap] = await Promise.all([
+      getDocs(collection(db,"matchResults")),
+      getDocs(collection(db,"tournamentMatches")),
+      getDocs(collection(db,"teams")),
+    ]);
+    const resultList = resultSnap.docs.map(d=>({ id: d.id, ...d.data() }));
+    const matchList = matchSnap.docs.map(d=>({ id: d.id, ...d.data() }));
+    const teamList = teamSnap.docs.map(d=>({ id: d.id, ...d.data() }));
+    const winnerEntries = getRoundWinnerTeams(prevRound, resultList, matchList, teamList);
+    const unresolved = winnerEntries.filter(entry => !entry.team);
+    const winners = winnerEntries
+      .filter(entry => entry.team)
+      .map(entry => entry.team);
+
+    setResults(resultList);
+    setMatches(matchList);
+    setAllTeams(teamList);
+    setProgressionWarning(unresolved.length
+      ? `${unresolved.length} previous-round winner could not be resolved to a unique team.`
+      : ""
+    );
     setTeams(winners);
   }
 
@@ -244,7 +259,7 @@ export default function MatchCreatorScreen() {
   }
 
   function getTeamName(id){
-    return teamMap[id] || "";
+    return teamMap[id] || allTeams.find(t => t.id === id)?.teamName || "";
   }
 
   const sortedTeams = [...teams].sort((a, b) =>
@@ -260,10 +275,9 @@ export default function MatchCreatorScreen() {
       );
   });
 
-  const resultMatchSet = new Set(results.map(r => r.matchLabel));
-
   function isResultRecorded(label){
-    return resultMatchSet.has(label);
+    const match = matches.find(m => m.label === label);
+    return Boolean(match && isMatchCompleted(match, results));
   }
 
   return(
@@ -271,6 +285,9 @@ export default function MatchCreatorScreen() {
       {/* LEFT FORM */}
       <div className="match-form">
         <h2>Create Match</h2>
+        {progressionWarning && (
+          <div className="round-info">{progressionWarning}</div>
+        )}
         <select
           value={round}
           onChange={e=>setRound(e.target.value)}
