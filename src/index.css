@@ -21,7 +21,7 @@ html, body, #root {
   grid-template-columns: 80px 1fr 200px;
   align-items: center;
 
-  padding: 16px 32px;
+  padding: 10px 32px;
   background: #020617;
   border-bottom: 2px solid #0f172a;
 }
@@ -65,30 +65,49 @@ html, body, #root {
 }
 
 .court {
+  position: relative;
   flex: 1;
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: clamp(8px, 1.2vw, 14px) clamp(14px, 2vw, 24px) clamp(8px, 1.2vw, 14px);
   display: flex;
-  align-items: center;
-  justify-content: space-evenly;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(8px, 1.1vw, 12px);
+}
+
+.scoreboard-main-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(520px, 1.8fr) minmax(240px, 0.9fr);
+  gap: clamp(14px, 1.8vw, 24px);
+  align-items: stretch;
 }
 
 .team {
   position: relative;
-  width: 320px;
-  height: 420px;
+  width: 100%;
+  min-height: clamp(330px, 48vh, 410px);
+  height: auto;
   padding: 0;
-  border-radius: 20px;
+  border-radius: 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .players-section {
   display: flex;
   flex-direction: column;
   align-items: center;   /* center horizontally */
-  gap: 8px;              /* space between player & swap */
-  margin-top: 20px;      /* push down slightly */
+  justify-content: center;
+  gap: 12px;             /* space between player & swap */
+  flex: 1;
+  min-height: 0;
+  padding: clamp(28px, 4vh, 46px) 16px;
 }
 
 .team.left {
@@ -136,11 +155,14 @@ html, body, #root {
 }
 
 .center-panel {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
-  gap: 16px;
+  gap: clamp(8px, 1.1vw, 12px);
 }
 
 .timer-duration{
@@ -150,33 +172,65 @@ html, body, #root {
 }
 .prematch-panel {
   background: #388150;
-  padding: 12px;
+  width: 100%;
+  padding: 10px 12px;
   border-radius: 8px;
-  
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.prematch-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) minmax(210px, 1fr) minmax(120px, 0.55fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.prematch-field {
+  min-width: 0;
+}
+
+.prematch-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.service-selection h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  text-align: left;
 }
 
 .prematch-panel select {
   width: 100%;
-  padding: 6px;
-  margin-bottom: 8px;
+  min-height: 34px;
+  padding: 6px 8px;
+  margin-bottom: 0;
 }
 
 .prematch-panel button {
   width: 100%;
-  padding: 6px;
-  margin-bottom: 6px;
+  min-height: 34px;
+  padding: 6px 10px;
+  margin: 0;
+}
+
+.start-match-btn {
+  align-self: end;
+  background: #16a34a;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .prematch-title {
-    margin-bottom: 5px;
-    margin-top: 5px;
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 18px;
 }
 .swap-btn {
-  position: absolute;
-  top: 87px;          /* midway between 40px and 120px */
-  left: 50%;
-  transform: translateX(-50%);
-
+  order: 2;
   padding: 4px 10px;
   font-size: 12px;
   background: #222;
@@ -192,14 +246,16 @@ html, body, #root {
 }
 
 .swapTeams-btn {
-  padding: 4px 10px;
-  font-size: 12px;
+  align-self: center;
+  padding: 7px 18px;
+  font-size: 13px;
   background: #e23838;
   color: white;
   border: 1px solid #555;
   border-radius: 6px;
   cursor: pointer;
   z-index: 3;
+  margin: 0;
 }
 
 .swapTeams-btn:hover {
@@ -207,23 +263,30 @@ html, body, #root {
 }
 
 .utility-btn {
-  padding: 8px 10px;
-  font-size: 12px;
+  min-width: 104px;
+  min-height: 38px;
+  padding: 8px 14px;
+  font-size: 13px;
   background: #1f2933;
   color: white;
   border: 1px solid #334155;
-  border-radius: 2px;
-  margin: 2px;
+  border-radius: 6px;
+  margin: 0;
+  font-weight: 700;
 }
 
 .utility-div {
-  background-color: #0c4a6e;
-  opacity: 0.5;
-}
-
-.game-info {
-  font-size: 18px;
-  opacity: 0.8;
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(12, 74, 110, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
 }
 
 .team-name.serving {
@@ -232,18 +295,20 @@ html, body, #root {
 }
 
 .player-badge {
-  position: absolute;
-  top: 40px;
-  left: 50%;
-  width: 160px;
+  width: min(82%, 220px);
+  min-height: 44px;
   padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   border-radius: 999px;
   background: #020617;
   border: 1px solid #334155;
   font-size: 18px;
   opacity: 0.5;
-  transform: translateX(-50%);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
   transition: transform 0.4s ease;
   z-index: 2;
 }
@@ -273,7 +338,7 @@ html, body, #root {
   opacity: 0.85;
 }
 .team-score {
-  font-size: 100px;
+  font-size: clamp(76px, 7.5vw, 112px);
   font-weight: 700;
   line-height: 1;
   
@@ -281,27 +346,26 @@ html, body, #root {
 
 /* LEFT team courts */
 .team.left .court-left {
-  transform: translateX(-50%) translateY(0);       /* Upper court */
+  order: 1;
 }
 
 .team.left .court-right {
-  transform: translateX(-50%) translateY(80px);   /* Lower court */
+  order: 3;
 }
 
 /* RIGHT team courts (mirror) */
 .team.right .court-left {
-  transform: translateX(-50%) translateY(80px);    /* Upper from their POV */
+  order: 3;
 }
 
 .team.right .court-right {
-  transform: translateX(-50%) translateY(0);      /* Lower from their POV */
+  order: 1;
 }
 
 .team-footer {
-  position: absolute;
-  bottom: 0;
   width: 100%;
-  height: 200px;
+  min-height: 48%;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -334,9 +398,10 @@ html, body, #root {
 
 .set-grid {
   display: grid;
-  grid-template-columns: 120px repeat(3, 70px);
+  grid-template-columns: minmax(190px, 36%) repeat(3, 1fr);
+  width: 100%;
   gap: 0; /* IMPORTANT: enables real dividers */
-  margin-bottom: 12px;
+  margin-bottom: 0;
   border: 2px solid #374151;
   border-radius: 10px;
   overflow: hidden;
@@ -345,7 +410,8 @@ html, body, #root {
 .cell {
   background: #111827;
   color: #e5e7eb;
-  padding: 5px;
+  min-height: 42px;
+  padding: 9px 10px;
   text-align: center;
   border-radius: 0px;
   font-weight: 600;
@@ -356,29 +422,29 @@ html, body, #root {
 
 .cell.header {
   background: #1f2937;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .cell.team-name {
   background: #020617;
   text-align: left;
-  padding-left: 10px;
-  font-size: 16px !important;
+  padding-left: 12px;
+  font-size: 17px !important;
   margin-bottom: 0px !important;
   font-weight: 700;
 }
 
 .cell.score.completed {
   background: #030712;
-  font-size: 16px !important;
+  font-size: 18px !important;
 }
 
 .cell.score.current {
   background: #0f172a;
   border: 2px solid #facc15;
   box-shadow: 0 0 8px rgba(250,204,21,0.6);
-  font-size: 16px !important;
+  font-size: 18px !important;
   position: relative;
   z-index: 2;
 }
@@ -386,7 +452,161 @@ html, body, #root {
 .cell.score.future {
   background: #020617;
   opacity: 0.35;
-  font-size: 16px !important;
+  font-size: 18px !important;
+}
+
+.scoreboard-info-strip {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1.3fr;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #07111f;
+  overflow: hidden;
+}
+
+.info-strip-section {
+  min-width: 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid #334155;
+  color: #e5e7eb;
+}
+
+.info-strip-section:last-child {
+  border-right: none;
+}
+
+.info-strip-section strong {
+  font-size: 14px;
+  color: #f8fafc;
+}
+
+.info-strip-section span {
+  font-size: 13px;
+  line-height: 1.35;
+  color: #cbd5e1;
+}
+
+.game-server-section strong,
+.duration-section span {
+  color: #facc15;
+}
+
+.round-info {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1180px) {
+  .court {
+    padding: 12px;
+  }
+
+  .scoreboard-main-grid {
+    grid-template-columns: minmax(210px, 0.85fr) minmax(430px, 1.6fr) minmax(210px, 0.85fr);
+    gap: 12px;
+  }
+
+  .prematch-controls {
+    grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr);
+  }
+
+  .start-match-btn {
+    grid-column: 1 / -1;
+  }
+
+  .set-grid {
+    grid-template-columns: minmax(160px, 36%) repeat(3, 1fr);
+  }
+
+  .utility-btn {
+    min-width: 92px;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-root {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .court {
+    justify-content: flex-start;
+  }
+
+  .scoreboard-main-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .center-panel {
+    order: -1;
+    min-height: auto;
+  }
+
+  .team {
+    min-height: 340px;
+  }
+
+  .prematch-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .set-grid {
+    grid-template-columns: minmax(130px, 38%) repeat(3, 1fr);
+  }
+
+  .scoreboard-info-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .info-strip-section {
+    border-right: none;
+    border-bottom: 1px solid #334155;
+  }
+
+  .info-strip-section:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .court {
+    padding: 10px;
+  }
+
+  .team {
+    min-height: 320px;
+  }
+
+  .player-badge {
+    width: min(88%, 210px);
+    font-size: 16px;
+  }
+
+  .set-grid {
+    grid-template-columns: minmax(112px, 40%) repeat(3, 1fr);
+  }
+
+  .cell {
+    min-height: 38px;
+    padding: 8px 6px;
+  }
+
+  .cell.team-name {
+    font-size: 14px !important;
+  }
+
+  .utility-div {
+    align-items: stretch;
+  }
+
+  .utility-btn {
+    flex: 1 1 120px;
+  }
 }
 
 /* Remove extra borders on edges */

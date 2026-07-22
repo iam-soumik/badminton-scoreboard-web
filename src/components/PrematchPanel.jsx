@@ -6,7 +6,6 @@ import { loadPrematch, reset, setFirstServerTeam, startMatch, swapTeams } from "
 import { getActiveTournamentRound, getSelectableMatches } from "../utils/utility";
 
 export default function PrematchPanel({ game }) {
-
   const dispatch = useDispatch();
   const [matches, setMatches] = useState([]);
   const [results, setResults] = useState([]);
@@ -89,14 +88,13 @@ export default function PrematchPanel({ game }) {
       "Load this match? Current setup will be replaced."
     );
     if (!confirmLoad) return;
-    
+
     const snap = await getDoc(doc(db, "tournamentMatches", matchId));
     if (!snap.exists()) return;
     const data = snap.data();
 
-    // load team documents
-    const teamASnap = await getDoc(doc(db,"teams",data.teamAId));
-    const teamBSnap = await getDoc(doc(db,"teams",data.teamBId));
+    const teamASnap = await getDoc(doc(db, "teams", data.teamAId));
+    const teamBSnap = await getDoc(doc(db, "teams", data.teamBId));
     if (!teamASnap.exists() || !teamBSnap.exists()) return;
 
     const teamAData = teamASnap.data();
@@ -126,35 +124,27 @@ export default function PrematchPanel({ game }) {
       <div className="prematch-panel">
         <h2 className="prematch-title">Prematch Setup</h2>
         {game.matchStatus === "idle" && (
-          <>
-            <label>Select Match</label>
-            <select
-              value={selectedMatchIsSelectable ? game.prematch.matchId : ""}
-              onChange={(e) => handleSelect(e.target.value)}
-              disabled={loadingTournamentData || selectableMatches.length === 0}
-            >
-              <option value="">
-                {loadingTournamentData ? "Loading matches..." : "-- Select Match --"}
-              </option>
-              {selectableMatches.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
+          <div className="prematch-controls">
+            <div className="prematch-field prematch-match-field">
+              <label>Select Match</label>
+              <select
+                value={selectedMatchIsSelectable ? game.prematch.matchId : ""}
+                onChange={(e) => handleSelect(e.target.value)}
+                disabled={loadingTournamentData || selectableMatches.length === 0}
+              >
+                <option value="">
+                  {loadingTournamentData ? "Loading matches..." : "-- Select Match --"}
                 </option>
-              ))}
-            </select>
-            {!loadingTournamentData && matches.length === 0 && (
-              <div className="round-info">No tournament matches generated.</div>
-            )}
-            {tournamentCompleted && (
-              <div className="round-info">Tournament completed - no pending matches.</div>
-            )}
-            {activeRoundBlocked && (
-              <div className="round-info">Current round has no ready matches.</div>
-            )}
+                {selectableMatches.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="service-selection">
+            <div className="service-selection prematch-field">
               <h4>First Serve</h4>
-
               <label>Serving Team</label>
               <select
                 value={game.matchConfig.firstServerTeam}
@@ -170,24 +160,34 @@ export default function PrematchPanel({ game }) {
                 </option>
               </select>
             </div>
-  
-          </>
-        )}
-        {selectedMatchIsSelectable && (
-          <button
-              style={{ marginTop: "12px" }}
-              onClick={() => dispatch(startMatch())}
-          >
-              ▶ Start Match
-          </button>
-        )}
 
+            {selectedMatchIsSelectable && (
+              <button
+                className="start-match-btn"
+                onClick={() => dispatch(startMatch())}
+              >
+                Start Match
+              </button>
+            )}
+
+            {!loadingTournamentData && matches.length === 0 && (
+              <div className="round-info">No tournament matches generated.</div>
+            )}
+            {tournamentCompleted && (
+              <div className="round-info">Tournament completed - no pending matches.</div>
+            )}
+            {activeRoundBlocked && (
+              <div className="round-info">Current round has no ready matches.</div>
+            )}
+          </div>
+        )}
       </div>
       {game.matchStatus === "idle" && (
-        <button 
-            className="swapTeams-btn"
-            onClick={() => dispatch(swapTeams())}>
-          🔁 Swap Teams
+        <button
+          className="swapTeams-btn"
+          onClick={() => dispatch(swapTeams())}
+        >
+          Swap Teams
         </button>
       )}
     </>
