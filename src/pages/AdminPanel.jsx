@@ -115,21 +115,6 @@ function AdminPanel() {
     }
   };
 
-  const getDisplayName = (device) => {
-    if (device.nickName && device.nickName.trim() !== "") {
-      return (
-        <>
-          <strong>{device.nickName}</strong>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            {device.systemName}
-          </div>
-        </>
-      );
-    }
-
-    return <strong>{device.systemName}</strong>;
-  };
-
   const startEditNick = (device) => {
     setEditingId(device.id);
     setTempNick(device.nickName || "");

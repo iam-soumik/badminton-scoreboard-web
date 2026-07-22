@@ -115,10 +115,6 @@ export function createScoringEngine() {
     }
   }
 
-  function getOpponent(team) {
-    return team === 'teamA' ? 'teamB' : 'teamA'
-  }
-
   function setFullState(newState) {
     state = JSON.parse(JSON.stringify(newState));
     console.log("setFullState :-  ",state);

@@ -10,7 +10,7 @@ export default function LoginScreen() {
   const login = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
+    } catch {
       alert("Login failed");
     }
   };

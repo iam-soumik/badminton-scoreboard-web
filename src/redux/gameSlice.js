@@ -46,7 +46,7 @@ const gameSlice = createSlice({
       return engine.getState();
     },
 
-    startMatch(state) {
+    startMatch() {
       engine.startMatch();
       return engine.getState();
     },
@@ -56,17 +56,17 @@ const gameSlice = createSlice({
       return engine.getState();
     },
 
-    swapTeams(state) {
+    swapTeams() {
       engine.swapTeams();
       return engine.getState();
     },
 
-    clearLastSetResult(state) {
+    clearLastSetResult() {
       engine.clearLastSetResult();
       return engine.getState();
     },
 
-    startNewMatch(state) {
+    startNewMatch() {
       engine.startNewMatch();
       return engine.getState();
     },
@@ -76,7 +76,7 @@ const gameSlice = createSlice({
       return engine.getState();
     },
 
-    confirmThirdSetSwap(state){
+    confirmThirdSetSwap(){
       engine.confirmThirdSetSwap();
       return engine.getState();
     }

@@ -256,13 +256,10 @@ export default function ScoreboardScreen({ device }) {
     if (device?.mode !== "primary") return;   // 🔒 ONLY PRIMARY
 
     const winner = game.gamesWon.teamA === 2 ? 'teamA' : 'teamB'
-    const loser  = winner === 'teamA' ? 'teamB' : 'teamA'
-
     const winnerName = getTeamDisplayName(winner);
-    const loserName = getTeamDisplayName(loser);
 
     const winnerScore = game.gamesWon[winner]
-    const loserScore = game.gamesWon[loser]
+    const loserScore = game.gamesWon[winner === 'teamA' ? 'teamB' : 'teamA']
 
     speakIfPrimary(
       `${winnerName} wins the match by ${winnerScore} to ${loserScore}`
@@ -272,13 +269,6 @@ export default function ScoreboardScreen({ device }) {
   function getTeamDisplayName(teamKey) {
     const players = game.players[teamKey];
     return players.map(p => p.name).join(" and ");
-  }
-
-  function undoFromPopup() {
-    if (!canScore) return;          // 🔒
-    if (!confirmAction('Undo last point?')) return
-    dispatch(undo())
-    setSetPopup(null)   // 👈 CLOSE POPUP
   }
 
   function undoLast() {

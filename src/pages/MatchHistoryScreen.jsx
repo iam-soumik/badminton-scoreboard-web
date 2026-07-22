@@ -31,8 +31,6 @@ export default function MatchHistoryScreen() {
     return <div>No match history available</div>
   }
 
-  const history = game.history || [];
-
   return (
     <MatchHistoryView
         game={game}
